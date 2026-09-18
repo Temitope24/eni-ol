@@ -8,10 +8,13 @@
 # disk at the start of every session in this folder, so it doesn't need
 # to be tracked in git to keep doing its job.
 #
-# Once the static mockup exists, everything under site/ is the actual
-# deliverable and IS meant to be published/shared — nothing above
-# excludes it, since these patterns are root-relative (a single leading
-# slash), not recursive.
+# The mockup itself lives at the repo root (index.html, prestations.html,
+# reserver.html, ma-reservation.html, conditions.html, _tests.html,
+# assets/, pro/) because GitHub Pages publishes from the root of main.
+# It IS the deliverable and is meant to be published — nothing above
+# excludes it: /*.md only matches markdown, and the other patterns are
+# root-relative (single leading slash), naming folders that aren't part
+# of the site.
 /*.md
 /research/
 /Livrable Eni'ol quatre fichiers/
