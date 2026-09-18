@@ -7,9 +7,11 @@
   "Données fictives · prix provisoires" — C01's wording, used over PDC §8's
   slightly different prose).
 
-  The switch supports the validation round trip (BUILD-PLAN §3): after the
-  client sends a request, "Côté Eni'ol" opens the requests inbox, and back
-  on "Côté cliente" it opens that request's tracking page.
+  Each side of the switch goes to that side's home page — "Côté cliente" to
+  index.html, "Côté Eni'ol" to pro/index.html. It used to hand off to the
+  last request instead (inbox on one side, tracking page on the other), but
+  because the reference is kept for good, "Côté cliente" then never went
+  home again after the first booking.
 
   Sets body.has-demo-bar; pages with a fixed sticky bar use
   var(--demo-bar-clearance) for its extra bottom padding.
@@ -23,13 +25,7 @@
   function root() { return inPro() ? "../" : ""; }
 
   function hrefs() {
-    var st = S.get();
-    var ref = st.demo && st.demo.lastRef;
-    var created = ref ? S.bookingByRef(ref) : null;
-    return {
-      cliente: root() + (created ? "ma-reservation.html?ref=" + encodeURIComponent(ref) : "index.html"),
-      pro: root() + "pro/" + (created && created.statut === "en_attente" ? "demandes.html" : "index.html")
-    };
+    return { cliente: root() + "index.html", pro: root() + "pro/index.html" };
   }
 
   function dateLabel() {
@@ -79,12 +75,6 @@
     bar.querySelector(".demo-panel__reset").addEventListener("click", function () {
       S.reset();
       window.location.reload();
-    });
-
-    S.subscribe(function () {
-      var next = hrefs();
-      bar.querySelector('[data-side="cliente"]').setAttribute("href", next.cliente);
-      bar.querySelector('[data-side="pro"]').setAttribute("href", next.pro);
     });
   }
 

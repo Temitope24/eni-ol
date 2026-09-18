@@ -547,7 +547,11 @@
       flow.adresse = a;
       flow.pending = null;
       flow.addressStatus = "confirmed";
-      if (body.isConnected && flow.step === 2) paintAddr(body);
+      /* The address widget lives on step 2 of the normal flow, but on
+         step 3 (Mesures) in the projet flow when Eni’ol takes the
+         measurements — without that second case the "Calcul du trajet…"
+         spinner never got repainted away. */
+      if (body.isConnected) paintAddr(body);
       renderChrome();
       updateContinueButton();
     }, 900);
