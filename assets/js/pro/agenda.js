@@ -184,12 +184,14 @@
     wrap.innerHTML = dates.map(function (d) {
       var items = byDate[d].sort(function (a, c) { return a.debut < c.debut ? -1 : 1; });
       return '<div class="liste-group"><p class="liste-group__date">' + D.formatDateLong(D.parseLocal(d)) + '</p>' +
+        '<div class="liste-group__rows">' +
         items.map(function (b) {
           var svc = S.service(b.serviceId), cl = S.client(b.clienteId);
-          return '<a class="req-row" href="rdv.html?id=' + b.id + '" style="margin-bottom:8px;">' +
+          return '<a class="req-row" href="rdv.html?id=' + b.id + '">' +
             '<span><p class="req-row__name">' + D.formatTime(D.parseLocal(b.debut)) + ' · ' + cl.prenom + " " + cl.nom + '</p><p class="req-row__sub">' + svc.nom + '</p></span>' +
             statutChip(b.statut) + '</a>';
         }).join("") +
+        '</div>' +
       '</div>';
     }).join("");
   }

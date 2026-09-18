@@ -80,6 +80,7 @@
   .day-timeline__gap-content { padding-left: 10px; }
 
   .liste-group + .liste-group { margin-top: 18px; }
+  .liste-group__rows { display: flex; flex-direction: column; gap: 8px; }
   .liste-group__date { margin: 0 0 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--ink-3); text-transform: uppercase; }
 
   .carte-box { background: var(--sand); border: 1px solid var(--rule); border-radius: var(--radius-card); padding: 16px; position: relative; }
@@ -92,16 +93,28 @@
   .carte-row__num { width: 26px; height: 26px; border-radius: 50%; background: var(--action); color: var(--surface); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; flex: none; }
   .carte-row--pending .carte-row__num { background: none; border: 2px dashed var(--state-warn-ink); color: var(--state-warn-ink); }
 
-  .week-grid { display: grid; grid-template-columns: 56px repeat(7, 1fr); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; background: var(--surface); min-width: 760px; }
-  .week-grid__daycol-head { background: var(--sand); border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); padding: 10px; text-align: center; }
+  /* The frame (border + rounding + clipping) lives on the scroller, not on
+     the grid: an overflow:hidden between a sticky cell and its scroll
+     container silently kills the stickiness. */
+  .week-grid { display: grid; grid-template-columns: 56px repeat(7, 1fr); background: var(--surface); min-width: 760px; }
+  .week-grid__daycol-head { position: sticky; top: 0; z-index: 2; background: var(--sand); border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); padding: 10px; text-align: center; }
   .week-grid__daycol-head p { margin: 0; }
   .week-grid__daycol-head .dow { font-family: var(--font-mono); font-size: 11px; color: #5A4939; }
   .week-grid__daycol-head .dom { font-family: var(--font-mono); font-size: 15px; }
-  .week-grid__gutter-head { background: var(--sand); border-bottom: 1px solid var(--rule); }
+  .week-grid__gutter-head { position: sticky; top: 0; left: 0; z-index: 4; background: var(--sand); border-bottom: 1px solid var(--rule); }
+  /* The hour column stays put while the days slide under it. */
+  .week-grid__gutter { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--rule); }
   .week-grid__body { display: contents; }
   .week-grid__hour-label { border-top: 1px solid var(--sand); padding: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-align: right; }
   .week-grid__daycol { position: relative; border-top: 1px solid var(--sand); border-left: 1px solid var(--rule); }
-  .week-scroll { overflow-x: auto; }
+  .week-scroll {
+    overflow: auto;
+    /* Bounding the height is what lets the day row stick: sticky resolves
+       against this scroller, and without a limit it never scrolls. */
+    max-height: min(70vh, 780px);
+    overscroll-behavior: contain;
+    border: 1px solid var(--rule); border-radius: 14px; background: var(--surface);
+  }
   .week-event {
     position: absolute; left: 3px; right: 3px; border-radius: 8px; padding: 6px 8px; overflow: hidden; font-size: 11px;
     background: var(--deep); color: var(--ink-on-deep);

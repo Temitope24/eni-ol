@@ -186,6 +186,18 @@
 .chip--warn   { background: var(--state-warn-bg);   color: var(--state-warn-ink); }
 .chip--danger { background: var(--state-danger-bg); color: var(--state-danger-ink); }
 
+/* Request / appointment row — the pro's one-line list item. Shared by the
+   Demandes inbox and the Agenda's Liste view, which is why it lives here
+   rather than in one page's <style>. */
+.req-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card);
+  text-decoration: none; color: inherit;
+}
+.req-row__name { margin: 0; font-weight: 600; font-size: 15px; }
+.req-row__sub { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+
 /* Time slots — real <input type="radio"> inside a <fieldset>, per §7
    (Accessibilité): <label class="slot"><input type="radio" class="slot__input" …>10:00</label> */
 .slot {
