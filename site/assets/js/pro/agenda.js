@@ -204,23 +204,53 @@
     var head = '<p style="margin:0 0 12px; font-size:13.5px; color:var(--ink-2);">' + D.formatDateLong(D.parseLocal(date)) + ' · ' + busy.length + ' RDV</p>';
     if (!busy.length) { wrap.innerHTML = head + '<div class="empty-state"><p class="empty-state__title">Rien à placer sur la carte</p></div>'; return; }
 
-    var cx = 150, cy = 118, r = 90;
+    // R05 is an explicitly stylised map ("SVG stylisé, aucune tuile"), so its
+    // pins sit in the artboard's own three slots rather than at real
+    // coordinates. settings.maxRdvParJour is 3, so those cover every demo
+    // day; a 4th+ stop falls back to an arc.
+    var SLOTS = [{ x: 196, y: 88 }, { x: 248, y: 132 }, { x: 86, y: 160 }];
+    var DX = 126, DY = 72; // "départ", where R05 places it
+    function shortZone(z) {
+      if (!z) return "";
+      return z.split(" · ")[0].replace(/^Paris\s+/, "").replace(/\s*\(\d+\)$/, "");
+    }
     var pins = busy.map(function (o, i) {
-      var angle = -Math.PI / 2 + (i + 1) * (Math.PI * 1.3 / (busy.length + 1));
-      return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle), o: o, i: i + 1 };
+      var slot = SLOTS[i];
+      if (!slot) {
+        var angle = -Math.PI / 2 + (i + 1) * (Math.PI * 1.3 / (busy.length + 1));
+        slot = { x: 150 + 90 * Math.cos(angle), y: 118 + 90 * Math.sin(angle) };
+      }
+      return { x: slot.x, y: slot.y, o: o, i: i + 1 };
     });
+
     var svg = '<svg viewBox="0 0 300 240" style="width:100%; height:auto; display:block;">' +
       '<rect x="0" y="0" width="300" height="240" fill="var(--sand)"></rect>' +
-      '<circle cx="150" cy="118" r="88" fill="var(--rule)" opacity=".5"></circle>' +
-      '<circle cx="150" cy="118" r="58" fill="var(--rule)" opacity=".7"></circle>' +
+      '<circle cx="150" cy="118" r="88" fill="#DFD1BE" stroke="#C9B8A3" stroke-width="1"></circle>' +
+      '<circle cx="150" cy="118" r="58" fill="#D6C6B0" stroke="#C9B8A3" stroke-width="1"></circle>' +
+      // the Seine, and the petite-couronne ring around the city
+      '<path d="M40 130 q60 -26 120 -6 t100 -4" stroke="#A8BAC4" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.7"></path>' +
+      '<circle cx="150" cy="118" r="120" fill="none" stroke="#C9B8A3" stroke-width="1" stroke-dasharray="4 5"></circle>' +
       '<text x="150" y="20" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="var(--ink-3)">PARIS + PETITE COURONNE</text>' +
-      '<circle cx="' + cx + '" cy="' + (cy - 46) + '" r="9" fill="var(--deep)"></circle>' +
-      '<text x="' + cx + '" y="' + (cy - 42) + '" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="var(--ground)">D</text>';
+      '<circle cx="' + DX + '" cy="' + DY + '" r="9" fill="var(--deep)"></circle>' +
+      '<text x="' + DX + '" y="' + (DY + 4) + '" text-anchor="middle" font-family="DM Mono, monospace" font-size="9" fill="var(--ground)">D</text>' +
+      '<text x="' + DX + '" y="' + (DY - 14) + '" text-anchor="middle" font-family="DM Mono, monospace" font-size="8" fill="var(--ink-body)">départ · ' + shortZone(base.arrondissement) + '</text>';
+
     pins.forEach(function (p) {
-      var pending = p.o.booking.statut === "en_attente";
-      svg += '<path d="M' + cx + ' ' + (cy - 46) + ' L' + p.x + ' ' + p.y + '" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3" opacity=".5"></path>';
-      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="11" ' + (pending ? 'fill="none" stroke="var(--state-warn-ink)" stroke-width="2" stroke-dasharray="3 3"' : 'fill="var(--action)"') + '></circle>';
-      svg += '<text x="' + p.x + '" y="' + (p.y + 4) + '" text-anchor="middle" font-family="DM Mono, monospace" font-size="10" fill="' + (pending ? "var(--state-warn-ink)" : "var(--ground)") + '">' + p.i + '</text>';
+      var b = p.o.booking, pending = b.statut === "en_attente";
+      var addr = b.adresseId ? S.address(b.adresseId) : null;
+      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="11" ' + (pending ? 'fill="none" stroke="var(--state-warn-ink)" stroke-width="2" stroke-dasharray="3 3"' : 'fill="var(--action)"') + '></circle>' +
+        '<text x="' + p.x + '" y="' + (p.y + 4) + '" text-anchor="middle" font-family="DM Mono, monospace" font-size="10" fill="' + (pending ? "var(--state-warn-ink)" : "var(--surface)") + '">' + p.i + '</text>' +
+        '<text x="' + p.x + '" y="' + (p.i === 1 ? p.y - 16 : p.y + 24) + '" text-anchor="middle" font-family="DM Mono, monospace" font-size="8" fill="' + (pending ? "var(--state-warn-ink)" : "var(--ink-body)") + '">' +
+          A.fromMin(p.o.start) + ' · ' + shortZone(addr ? addr.zone : "") + (pending ? " (attente)" : "") + '</text>';
+    });
+
+    // R05 chains the route départ → 1 → 2 → 3 (not a star out of D), and
+    // draws the hop into a stop whose travel doesn't fit in red.
+    pins.forEach(function (p, i) {
+      var from = i === 0 ? { x: DX, y: DY } : pins[i - 1];
+      var ev = A.evaluateBooking(state, p.o.booking.id, now);
+      var bad = ev && ev.type === "trajet" && ev.arrivee.fit.level === "ne_tient_pas";
+      svg += '<path d="M' + from.x + ' ' + from.y + ' L' + p.x + ' ' + p.y + '" stroke="' + (bad ? "var(--state-danger-ink)" : "var(--ink)") + '" stroke-width="1.5" stroke-dasharray="3 3"></path>';
     });
     svg += '</svg>';
 
