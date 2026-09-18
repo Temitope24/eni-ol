@@ -1,0 +1,140 @@
+<!doctype html>
+<!--
+  conditions.html — batch B22. Source: PUB P12, read in full — every
+  section's copy (including the "⚑ Maquette" placeholder-disclaimer box)
+  is transcribed verbatim; nothing here is invented. No desktop artboard
+  exists for this page, so ≥ 900px just centers the same column at
+  680px (PDC §3's prose-column width), same convention as prestations.html.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Conditions — Eni’ol</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/motion.css">
+<link rel="stylesheet" href="assets/css/public-motion-off.css">
+<script src="assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; }
+  .col { max-width: 680px; margin: 0 auto; }
+  /* Sticky so it can't end up scrolling away with the page. */
+  header.site {
+    position: sticky; top: 0; z-index: 20; background: var(--ground);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--rule);
+  }
+  header.site .back {
+    font-size: 18px; color: var(--ink); text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; margin: -12px -14px;
+  }
+  header.site .logo { font-family: var(--font-display); font-size: 20px; }
+  header.site .spacer { width: 44px; } /* balances the back arrow so the logo stays centered, as P12 draws it */
+
+  .intro { padding: 24px 20px 32px; }
+  .intro h1 { font-size: 32px; line-height: 1.08; margin: 0 0 10px; }
+  .intro > p.lede { margin: 0 0 20px; font-size: 15px; color: var(--ink-body); }
+
+  .toc { border: 1px solid var(--rule); background: var(--surface); border-radius: 12px; padding: 14px; margin-bottom: 24px; }
+  .toc p.label { margin: 0 0 8px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--action); }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  .toc a { display: block; font-size: 14.5px; color: var(--action); text-decoration: none; }
+  .toc a:hover { color: var(--action-press); text-decoration: underline; }
+
+  .sections { display: flex; flex-direction: column; gap: 22px; }
+  .sections section h2 { font-size: 22px; margin: 0 0 8px; }
+  .sections section p { margin: 0 0 8px; font-size: 15px; line-height: 1.6; color: var(--ink); }
+  .sections section p:last-child { margin-bottom: 0; }
+  .sections .callout {
+    font-size: 14px; line-height: 1.6; color: var(--ink-body);
+    background: var(--state-warn-bg); border-radius: 10px; padding: 12px;
+  }
+  .sections .mono { font-family: var(--font-mono); font-size: 13.5px; }
+
+  .maquette-note { background: var(--state-danger-bg); border-radius: 12px; padding: 14px; margin-top: 24px; }
+  .maquette-note p { margin: 0; font-size: 13.5px; color: #5A2A22; }
+
+  @media (min-width: 900px) {
+    header.site { padding: 14px max(20px, calc((100% - 680px) / 2 + 20px)); }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <a class="back" href="index.html" data-nav="back" aria-label="Retour à l’accueil">←</a>
+  <span class="logo">Eni’ol</span>
+  <span class="spacer" aria-hidden="true"></span>
+</header>
+
+<div class="intro col">
+  <h1>Conditions</h1>
+  <p class="lede">Tout est écrit simplement. Si quelque chose n’est pas clair, écrivez-moi.</p>
+
+  <nav class="toc" aria-label="Sommaire">
+    <p class="label">SOMMAIRE</p>
+    <ol>
+      <li><a href="#arrhes">1. Les arrhes</a></li>
+      <li><a href="#annulation">2. Annulation</a></li>
+      <li><a href="#retard">3. Retard et absence</a></li>
+      <li><a href="#paiement">4. Paiement sur place</a></li>
+      <li><a href="#sur-mesure">5. Perruques sur mesure</a></li>
+      <li><a href="#mentions">6. Mentions légales</a></li>
+      <li><a href="#donnees">7. Vos données (RGPD)</a></li>
+    </ol>
+  </nav>
+
+  <div class="sections">
+    <section id="arrhes">
+      <h2>1. Les arrhes</h2>
+      <p>Après avoir accepté votre demande, je vous demande des <strong>arrhes</strong> : 20 € pour une pose, 30 % du devis pour une fabrication sur mesure. Elles bloquent votre créneau et se déduisent du prix final.</p>
+      <p>Si <strong>vous</strong> annulez après le délai gratuit, les arrhes me restent acquises. Si <strong>j’annule</strong> de mon fait, je vous rembourse le double des arrhes versées.</p>
+      <p class="callout">◔ Les arrhes ne se paient jamais sur ce site : vous me les envoyez directement, par Lydia, Wero ou virement.</p>
+    </section>
+    <section id="annulation">
+      <h2>2. Annulation</h2>
+      <p>Annulation gratuite jusqu’à <strong>48 h</strong> avant le rendez-vous : arrhes remboursées intégralement. Moins de 48 h avant, les arrhes restent acquises. Vous pouvez aussi décaler une fois sans frais, si je suis libre.</p>
+    </section>
+    <section id="retard">
+      <h2>3. Retard et absence</h2>
+      <p>Je viens en transports : si je suis en retard, je vous préviens par SMS. Au-delà de <strong>20 minutes</strong> d’attente sans réponse de votre côté, le rendez-vous est considéré comme une absence et les arrhes restent acquises. Un retard de votre part peut raccourcir la prestation si j’ai un autre rendez-vous après.</p>
+    </section>
+    <section id="paiement">
+      <h2>4. Paiement sur place</h2>
+      <p>Le solde se règle à la fin de la séance, en <strong>espèces ou par carte</strong>. Un justificatif vous est envoyé sur demande.</p>
+    </section>
+    <section id="sur-mesure">
+      <h2>5. Perruques sur mesure</h2>
+      <p>Le devis est valable 30 jours. La fabrication démarre à réception des arrhes de 30 %, qui couvrent l’achat des mèches et de la lace : <strong>une fois les matières commandées, ces arrhes ne sont plus remboursables</strong>. Comptez environ 3 semaines. Les mesures que vous me transmettez engagent la taille du bonnet ; une retouche d’ajustement est offerte.</p>
+    </section>
+    <section id="mentions">
+      <h2>6. Mentions légales</h2>
+      <p>Eni’ol — entrepreneuse individuelle (micro-entreprise), activité de coiffure à domicile, Paris.<br><span class="mono">SIRET : en cours</span><br>Contact : 07 53 71 11 38 · Instagram @pose.de.perruques<br>Hébergeur : à compléter.</p>
+    </section>
+    <section id="donnees">
+      <h2>7. Vos données</h2>
+      <p>Je collecte votre nom, téléphone, e-mail, adresse et les photos que vous m’envoyez, <strong>uniquement</strong> pour réaliser la prestation. Personne d’autre n’y a accès, rien n’est revendu.</p>
+      <p>Conservation : 3 ans après notre dernier rendez-vous (adresses et photos), puis suppression. Les photos ne sont publiées que si vous avez coché l’autorisation — vous pouvez la retirer à tout moment par un simple message.</p>
+      <p>Vous pouvez demander à consulter, corriger ou supprimer vos données en m’écrivant.</p>
+    </section>
+  </div>
+
+  <div class="maquette-note">
+    <p>⚑ <strong>Maquette</strong> : ces textes sont des placeholders crédibles rédigés par le design. À faire relire par un juriste avant mise en ligne (arrhes, rétractation, RGPD).</p>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/strings.js"></script>
+<script src="assets/js/dates.js"></script>
+<script src="assets/js/travel.js"></script>
+<script src="assets/js/availability.js"></script>
+<script src="assets/js/status.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/demo-bar.js"></script>
+</body>
+</html>

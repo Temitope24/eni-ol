@@ -1,0 +1,1051 @@
+/*
+  Component library — every class here corresponds to a state shown in
+  "Composants.dc.html" (C01), re-read in full for this batch. Section
+  comments below match that file's own section headings so you can trace
+  any class back to its source.
+
+  Static mockup states are translated into real interactive CSS where the
+  mockup was necessarily showing a non-interactive illustration of a state:
+  a manually-drawn ". focus" button becomes a real :focus-visible rule; a
+  manually-drawn "focused" field becomes :focus-within; radios use real
+  <input type="radio"> + :checked, not a manually toggled class. Any
+  divergence like this from the literal markup is noted inline.
+*/
+
+/* ---- Palette extensions ----
+   These colors recur constantly across both maquette files (dark-background
+   text/panels, chip inks, disabled/error variants) but weren't in the §1
+   color table in tokens.css (B1) — that table only covered the light-mode
+   ground/surface/ink system + the 4 pro état pairs. Documenting them here,
+   where they were found, rather than hardcoding hex repeatedly below. */
+:root {
+  --ink-on-deep: #EFE3D6;   /* primary text on a --deep background */
+  --ink-2-on-deep: #C9B4A2; /* secondary/muted text on --deep (timestamps, notes) */
+  --heart-on-deep: #E0B9A8; /* accent/link/dismiss on --deep — the --heart equivalent for dark */
+  --deep-2: #4A362A;        /* slightly lighter than --deep — inset tracks, dividers on dark */
+
+  --chip-ink: #3A2A1E;              /* travel-mode chip text (🚶‍♀️/🏠/↔) */
+  --slot-unavailable-border: #C9B8A3;
+  --slot-unavailable-bg: #EDE4D8;
+  --field-error-bg: #FDF4F1;
+  --placeholder-swatch-b: #DFD1BE;  /* second stripe color in the photo-placeholder texture */
+  --btn-destructive-border: #C99B92;
+  --btn-on-deep-secondary-border: #7A6857;
+  --conseille-ink: #7A3E3A;         /* "♡ 13:00 · créneau conseillé" note text (P05) */
+}
+
+/* =====================================================================
+   Boutons
+   ===================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: var(--weight-ui-medium) var(--text-label-size)/1 var(--font-ui);
+  border-radius: var(--radius-pill);
+  padding: 15px 26px;
+  min-height: 48px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none; /* an <a class="btn"> otherwise keeps the browser's
+    default underline — none of the pill buttons in any artboard have one. */
+  transition: background-color .12s, box-shadow .12s, transform .12s;
+}
+.btn:focus-visible { outline-offset: 3px; } /* buttons use 3px, not the base 2px */
+.btn:disabled, .btn[aria-disabled="true"] { cursor: not-allowed; }
+
+.btn--primary {
+  color: var(--surface);
+  background: var(--action);
+  border-color: var(--ink);
+  box-shadow: var(--shadow-button);
+}
+/* color repeated on :hover/:active — base.css's generic `a:hover{color:...}`
+   rule otherwise wins (higher specificity than .btn--primary alone) and
+   silently makes the label the same color as the background. Found by
+   testing a real hover in-browser, not visible from static markup. */
+.btn--primary:hover { background: var(--action-press); color: var(--surface); }
+.btn--primary:active {
+  box-shadow: 1px 1px 0 var(--ink);
+  transform: translate(2px, 2px);
+  color: var(--surface);
+}
+.btn--primary:disabled, .btn--primary[aria-disabled="true"] {
+  color: var(--ink-3);
+  background: var(--sand);
+  border-color: var(--rule);
+  box-shadow: none;
+}
+/* Loading: spinner + label, e.g. "Envoi…" — apply .is-loading, keep the
+   button non-interactive via aria-disabled in the markup */
+.btn.is-loading { position: relative; }
+.btn__spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(251, 247, 242, .4);
+  border-top-color: var(--surface);
+  border-radius: 50%;
+  display: inline-block;
+  animation: btn-spin .7s linear infinite;
+}
+
+.btn--secondary {
+  color: var(--ink);
+  background: transparent;
+  border-color: var(--ink);
+  padding: 15px 24px;
+}
+.btn--secondary:hover { background: var(--sand); color: var(--ink); }
+
+.btn--text {
+  color: var(--action);
+  background: none;
+  border: 0;
+  padding: 14px 4px;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Plain dismiss link — R03's "Annuler" under a sheet's primary action has
+   no underline (unlike "Passer cette étape" / "＋ Ajouter une note", which
+   the maquettes DO draw underlined) and uses --ink-2, not --action. */
+.btn--text-plain {
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  padding: 14px 4px;
+  min-height: 44px;
+  text-decoration: none;
+}
+.btn--text-plain:hover { color: var(--ink); }
+
+.btn--destructive {
+  color: var(--state-danger-ink);
+  background: transparent;
+  border-color: var(--btn-destructive-border);
+  padding: 14px 22px;
+}
+.btn--destructive:hover { background: var(--state-danger-bg); color: var(--state-danger-ink); }
+
+/* Filled-sand secondary — R02's "Accepter quand même" button, distinct from
+   the plain outlined .btn--secondary used everywhere else. */
+.btn--sand { color: var(--ink); background: var(--sand); border-color: var(--ink); }
+.btn--sand:hover { background: var(--rule); color: var(--ink); }
+
+/* On a --deep background (dark sticky bars, inverted sections) */
+.btn--on-deep {
+  color: var(--ink);
+  background: var(--ground);
+  border-color: var(--ground);
+}
+.btn--on-deep:hover, .btn--on-deep:active { color: var(--ink); }
+.btn--on-deep:focus-visible { outline-color: var(--focus-on-deep); }
+
+.btn--on-deep-secondary {
+  color: var(--ground);
+  background: transparent;
+  border-color: var(--btn-on-deep-secondary-border);
+  padding: 15px 22px;
+}
+.btn--on-deep-secondary:hover { color: var(--ground); }
+.btn--on-deep-secondary:focus-visible { outline-color: var(--focus-on-deep); }
+
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+/* =====================================================================
+   Puces, badges & créneaux
+   ===================================================================== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-pill);
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: var(--weight-ui-medium);
+}
+.chip--travel   { background: var(--sand); color: var(--chip-ink); } /* 🚶‍♀️ / 🏠 / ↔ */
+.chip--conseille{ background: var(--tag-bg); color: var(--heart); }  /* ♡ Conseillé */
+.chip--projet   { background: var(--state-project-bg); color: var(--state-project-ink); }
+.chip--outline {
+  background: none;
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: var(--weight-mono-regular);
+}
+
+/* État chips reused everywhere a travel/request signal is shown
+   (OK / serré-loin / ne tient pas / projet) — same 4 pairs as tokens.css,
+   exposed here as ready-made chip classes. */
+.chip--ok     { background: var(--state-ok-bg);     color: var(--state-ok-ink); }
+.chip--warn   { background: var(--state-warn-bg);   color: var(--state-warn-ink); }
+.chip--danger { background: var(--state-danger-bg); color: var(--state-danger-ink); }
+
+/* Time slots — real <input type="radio"> inside a <fieldset>, per §7
+   (Accessibilité): <label class="slot"><input type="radio" class="slot__input" …>10:00</label> */
+.slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-field);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  cursor: pointer;
+}
+.slot__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px; height: 1px;
+  pointer-events: none;
+}
+.slot__flag {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.slot:has(.slot__input:checked) {
+  border: 2px solid var(--action);
+  background: var(--action);
+  color: var(--surface);
+}
+.slot:has(.slot__input:disabled) {
+  border: 1px dashed var(--slot-unavailable-border);
+  background: var(--slot-unavailable-bg);
+  color: var(--ink-3);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+.slot:has(.slot__input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Progress bar + step label */
+.progress-bar {
+  height: 4px;
+  background: var(--sand);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.progress-bar__fill { height: 100%; background: var(--action); }
+.progress-step-label {
+  margin: 10px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+/* Segmented control */
+.segmented {
+  display: inline-flex;
+  background: var(--sand);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+.segmented__item {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: var(--ink-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+}
+.segmented__item.is-active {
+  background: var(--surface);
+  border-color: var(--ink);
+  font-weight: var(--weight-ui-medium);
+  color: var(--ink);
+}
+
+/* =====================================================================
+   Champs, autocomplétion d’adresse, erreurs
+   ===================================================================== */
+
+.field {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: var(--radius-field);
+  padding: 14px;
+  min-height: 48px;
+  font: var(--weight-ui-regular) var(--text-body-size)/1.2 var(--font-ui);
+  color: var(--ink);
+  width: 100%;
+}
+.field::placeholder { color: var(--ink-3); } /* per the mockup's own rest-state example */
+.field:focus-within, .field:focus {
+  border: 2px solid var(--action);
+  padding: 13px; /* compensates the +1px border so height doesn't jump */
+  outline: none; /* the thicker border IS the focus indicator here */
+}
+.field--mono { font-family: var(--font-mono); }
+.field.has-error {
+  border: 2px solid var(--state-danger-ink);
+  background: var(--field-error-bg);
+  padding: 13px;
+}
+.field-help {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.field-help--rest { color: var(--ink-3); }
+.field-help--error { color: var(--state-danger-ink); }
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: var(--weight-ui-medium);
+  margin-bottom: 6px;
+}
+
+/* Address autocomplete: input loses its bottom radius while the dropdown
+   is open, dropdown sits flush under it. */
+.address-input.is-open {
+  border-radius: var(--radius-field) var(--radius-field) 0 0;
+}
+.address-suggestions {
+  border: 1px solid var(--rule);
+  border-top: 0;
+  background: var(--surface);
+  border-radius: 0 0 var(--radius-field) var(--radius-field);
+  overflow: hidden;
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.address-suggestions li {
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--sand);
+  font-size: 14px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.address-suggestions li:last-child { border-bottom: 0; }
+.address-suggestions strong { font-weight: 600; }
+.address-suggestions .muted { color: var(--ink-2); }
+
+/* "Calcul du trajet…" — aria-live="polite" on the wrapping element */
+.field-loading {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: var(--radius-field);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-2);
+}
+.field-loading__spinner {
+  width: 14px; height: 14px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--action);
+  border-radius: 50%;
+  animation: btn-spin .7s linear infinite;
+}
+
+/* Confirmed address row */
+.field-confirmed {
+  border: 1px solid var(--ink);
+  background: var(--sand);
+  border-radius: var(--radius-field);
+  padding: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.field-confirmed p:first-child { margin: 0; font-weight: var(--weight-ui-medium); }
+.field-confirmed p:last-child { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+
+/* Not-found error banner (distinct from a single field's inline error) */
+.field-error-banner {
+  border: 2px solid var(--state-danger-ink);
+  background: var(--field-error-bg);
+  border-radius: var(--radius-field);
+  padding: 14px;
+  font-size: 14px;
+  color: var(--state-danger-ink);
+}
+
+/* =====================================================================
+   Zones photo & cadres
+   ===================================================================== */
+
+/* The recurring diagonal-stripe placeholder texture, used wherever a real
+   photo isn't loaded yet (portfolio thumbs, wig photos, before/after). */
+.placeholder-swatch {
+  background: repeating-linear-gradient(
+    135deg, var(--sand) 0 6px, var(--placeholder-swatch-b) 6px 12px
+  );
+}
+
+.photo-upload-zone {
+  display: block; /* it's a <label>, inline by default — a border on an
+    inline box fragments per line instead of wrapping the whole thing,
+    which is what made this render as several thin dashed slivers */
+  border: 1px dashed var(--slot-unavailable-border);
+  background: var(--surface);
+  border-radius: var(--radius-photo);
+  padding: 24px;
+  text-align: center;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+/* These three are <span>s (kept as spans, not <p>, since the whole thing
+   sits inside a <label>) — block so the top-margins that stack them
+   vertically actually apply; a vertical margin on an inline element is
+   otherwise silently ignored, which had these three rendering side by
+   side on one line instead of stacked (only caught once B16 became the
+   first batch to actually render the empty-photo-zone state). */
+.photo-upload-zone__icon { display: block; font-size: 22px; }
+.photo-upload-zone__label { display: block; margin: 6px 0 0; font-size: 14px; }
+.photo-upload-zone__hint { display: block; margin: 2px 0 0; font-size: 12.5px; color: var(--ink-3); }
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.photo-grid__item {
+  aspect-ratio: 1;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-photo);
+  position: relative;
+}
+.photo-grid__remove {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 26px; height: 26px;
+  min-width: 44px; min-height: 44px; /* visual 26px, tap target extended to 44px via negative margin */
+  margin: -9px -9px 0 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--deep);
+  color: var(--ground);
+  font-size: 13px;
+  border: 0;
+  cursor: pointer;
+}
+.photo-grid__uploading {
+  aspect-ratio: 1;
+  background: var(--slot-unavailable-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-photo);
+  display: flex; align-items: center; justify-content: center;
+}
+.photo-grid__uploading .spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--action);
+  border-radius: 50%;
+  animation: btn-spin .7s linear infinite;
+}
+
+/* Before / After comparison slider.
+   Both P01 and P13 draw this as a static 50/50 illustration (two side-by-side
+   halves, ↔ icon dead-center) — that's fine for a non-interactive mockup
+   render, but a REAL slider needs both images full-size and stacked, with
+   the "after" one clipped to reveal progressively more/less as the handle
+   moves. Building it as two permanently-50%-wide flex children (the literal
+   markup shape) doesn't drag correctly — found by testing in-browser. */
+.compare-slider {
+  position: relative;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-photo);
+  overflow: hidden;
+}
+/* AVANT is always the left label, APRÈS always the right one (both
+   artboards draw it as a fixed 50/50 split, not something that swaps with
+   the drag). So structurally: "après" is the full-size BASE layer, and
+   "avant" is a LEFT-anchored overlay on top of it, shrinking as the handle
+   moves left. Building it the other way around (an earlier attempt had
+   "après" as the growing-from-the-left overlay) puts avant's content under
+   the après label and vice versa — found by actually dragging the slider
+   partway and checking which label sat over which color, not visible at
+   the default 50% position. */
+.compare-slider__side {
+  position: absolute;
+  inset: 0;
+}
+.compare-slider__side--after { z-index: 0; }
+.compare-slider__side--before {
+  z-index: 1;
+  right: auto;
+  overflow: hidden;
+  /* Reveal by shrinking width + overflow:hidden, not clip-path: two
+     stacked layers with the same repeating-gradient pattern rendered a
+     visible color seam under clip-path in testing (a known compositing-
+     layer antialiasing quirk) — width-based clipping doesn't have that
+     failure mode, and since this is a tileable pattern (not a fixed
+     image), the texture still lines up without keeping widths in sync. */
+}
+/* The two sides are different stripes in the design itself — P01/P13:
+   "avant" #DFD1BE / #D6C6B0 (the darker one), "après" #EFE3D6 / #E8DCCC.
+   (An earlier pass had darkened "après" instead, the wrong way round.) */
+.compare-slider__side--before.placeholder-swatch {
+  background: repeating-linear-gradient(135deg, #DFD1BE 0 8px, #D6C6B0 8px 16px);
+}
+.compare-slider__side--after.placeholder-swatch {
+  background: repeating-linear-gradient(135deg, #EFE3D6 0 8px, #E8DCCC 8px 16px);
+}
+.compare-slider__divider {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--ink);
+  transform: translateX(-1px);
+  pointer-events: none;
+  /* Without this, "avant" (z-index:1, the overlay) painted over the left
+     half of the divider/handle wherever they fall inside its 0–pct%
+     region — at the default 50/50 split that's exactly their left half,
+     which is why the handle showed as a half-circle with only the right
+     arrowhead of ↔ visible. Found by reasoning through the z-index stack,
+     confirmed by the screenshot. */
+  z-index: 2;
+}
+.compare-slider__tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  position: relative;
+  z-index: 1;
+}
+/* Both tags positioned directly on .compare-slider, siblings of the two
+   pattern layers rather than children of either — a tag inside a layer
+   that gets clipped (now "avant", the shrinking overlay) disappears once
+   the clip passes it, same failure mode "après" had in an earlier
+   attempt when the roles were reversed. */
+.compare-slider__tag--before {
+  background: var(--deep); color: var(--ground);
+  position: absolute; left: 10px; bottom: 10px; z-index: 2;
+}
+.compare-slider__tag--after {
+  background: var(--action);
+  color: var(--surface);
+  position: absolute;
+  right: 10px; bottom: 10px; z-index: 2;
+}
+.compare-slider__handle {
+  position: absolute;
+  top: 50%;
+  width: 40px; height: 40px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--ground);
+  border: 1px solid var(--ink);
+  z-index: 2; /* same reason as .compare-slider__divider, right above */
+  display: flex; align-items: center; justify-content: center;
+  /* The design's 13px renders the ↔ glyph as barely a dot in this font —
+     confirmed by zooming into the actual rendered handle, not visible from
+     the CSS alone. Bumped so it's actually legible; still a single
+     character, so it doesn't change the handle's 40px size. */
+  font-size: 20px;
+  line-height: 1;
+  pointer-events: none;
+}
+/* Real control: an <input type="range"> layered over the slider, arrows = 5%,
+   plus a keyboard/screen-reader-only "Avant / Après" toggle per §7
+   accessibilité — not a second visible button, since neither artboard
+   shows one. */
+.compare-slider__range {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  z-index: 2;
+}
+
+/* =====================================================================
+   Chronologie d’annulation · suivi de statut · préparation
+   ===================================================================== */
+
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline__row { display: flex; gap: 12px; }
+.timeline__rail { display: flex; flex-direction: column; align-items: center; }
+.timeline__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); flex: none; }
+.timeline__dot--done { background: var(--state-ok-ink); }
+.timeline__dot--danger { background: var(--state-danger-ink); }
+.timeline__dot--outline { background: none; border: 2px solid var(--ink); }
+.timeline__line { flex: 1; width: 2px; background: var(--rule); min-height: 20px; }
+.timeline__content { padding-bottom: 16px; }
+.timeline__content:last-child { padding-bottom: 0; }
+.timeline__title { margin: 0; font-weight: var(--weight-ui-medium); }
+.timeline__desc { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.timeline__desc--ok { color: var(--state-ok-ink); }
+.timeline__desc--danger { color: var(--state-danger-ink); }
+
+/* Status tracker (suivi de la demande / status pills stacked vertically) */
+.status-tracker { display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; }
+.status-tracker__row { display: flex; gap: 10px; align-items: center; }
+.status-tracker__icon {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  flex: none;
+}
+.status-tracker__icon--done { background: var(--state-ok-ink); color: var(--surface); }
+.status-tracker__icon--current { background: var(--action); color: var(--surface); }
+.status-tracker__icon--pending {
+  background: none;
+  border: 1px solid var(--slot-unavailable-border);
+  color: var(--ink-2);
+}
+.status-tracker__row--pending { color: var(--ink-2); }
+.status-tracker__time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.status-tracker__time--current { color: var(--action); }
+
+/* Prep checklist card */
+.prep-card { background: var(--sand); border-radius: var(--radius-card); padding: 18px; }
+.prep-card__title { margin: 0 0 4px; font-weight: var(--weight-ui-medium); }
+.prep-card__eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--action);
+}
+.prep-card__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; }
+.prep-card__list li { display: flex; gap: 8px; }
+.prep-card__list .heart { color: var(--heart); }
+.prep-card__list .day-tag { font-family: var(--font-mono); font-size: 12px; }
+/* Checked state (a real checklist the client can tick through) */
+.prep-card__list input[type="checkbox"] { width: 20px; height: 20px; flex: none; accent-color: var(--action); }
+
+/* =====================================================================
+   Espace pro — carte de demande, segment de trajet, feuille, toasts
+   ===================================================================== */
+
+.request-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.request-card--attention { border-color: var(--btn-destructive-border); }
+.request-card--project { border-color: #A8BAC4; } /* project-status border, seen alongside --state-project */
+.request-card__header { display: flex; justify-content: space-between; gap: 10px; }
+.request-card__name { margin: 0; font-weight: 600; font-size: 16px; }
+.request-card__tag {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 12px;
+  background: var(--tag-bg);
+  color: var(--heart);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+}
+.request-card__expiry { margin: 0; font-family: var(--font-mono); font-size: 12px; text-align: right; color: var(--ink-2); }
+.request-card__expiry--urgent { color: var(--state-danger-ink); }
+.request-card__service {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  border-top: 1px solid var(--sand); padding-top: 10px;
+}
+.request-card__service-name { margin: 0; font-weight: var(--weight-ui-medium); }
+.request-card__service-date { margin: 2px 0 0; font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); }
+.request-card__price { margin: 0; font-family: var(--font-mono); font-size: 15px; font-weight: var(--weight-mono-medium); }
+.request-card__travel-box {
+  background: var(--ground);
+  border-radius: var(--radius-field);
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 13.5px;
+}
+.request-card__travel-box .muted { color: var(--ink-2); margin: 0; }
+.request-card__thumbs { display: flex; gap: 6px; }
+.request-card__thumb {
+  width: 46px; height: 46px;
+  border-radius: 8px;
+  border: 1px solid var(--rule);
+}
+.request-card__thumb--more {
+  background: var(--sand);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--ink-2);
+}
+.request-card__quote {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  border-left: 2px solid var(--rule);
+  padding-left: 10px;
+}
+.request-card__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Travel segment & free time */
+.travel-segment {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  padding: 16px;
+}
+.travel-segment__eyebrow {
+  margin: 0 0 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.travel-segment__body { display: flex; gap: 12px; }
+.travel-segment__rail { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+.travel-segment__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); flex: none; }
+.travel-segment__line { flex: 1; width: 0; border-left: 2px dotted var(--ink-3); min-height: 40px; }
+.travel-segment__content { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.travel-segment__content p { margin: 0; font-size: 14px; }
+.travel-segment__content .muted { font-size: 13.5px; color: var(--ink-2); }
+
+/* Toast */
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--deep);
+  color: var(--ink-on-deep);
+  border-radius: var(--radius-pill);
+  padding: 14px 18px;
+  font-weight: var(--weight-ui-medium);
+  max-width: 320px;
+}
+.toast__action {
+  margin-left: auto;
+  background: none; border: 0;
+  color: var(--heart-on-deep);
+  font: var(--weight-ui-medium) 14px var(--font-ui);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Empty state card */
+.empty-state {
+  background: var(--ground);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  text-align: center;
+}
+.empty-state__heart { margin: 0 0 6px; font-size: 26px; color: var(--heart); }
+.empty-state__title { margin: 0; font-weight: 600; }
+.empty-state__desc { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
+
+/* Encaisser sheet (extends the base .sheet class from base.css, which
+   already handles the top-rounded / flush-bottom / shadow shape) */
+/* Plain, static handle — matches the design exactly (R03/R06 draw it as
+   a simple bar, no sticky/fixed behavior). Scrolled sticky-handle
+   variants were tried and reverted per feedback: back to how it looks in
+   the maquette. */
+.sheet__handle {
+  width: 44px; height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--rule);
+  margin: 0 auto 14px;
+}
+/* 24px on both literal artboards that draw a sheet title (R03 "Accepter
+   cette demande ?", R06 "Encaisser") — Composants.dc.html's own generic
+   example uses 22px, but per this project's "maquette wins" rule the
+   actual per-screen artboards take precedence over C01's reference copy. */
+.sheet__title { margin: 0 0 4px; font-family: var(--font-display); font-size: 24px; }
+.sheet__subtitle { margin: 0 0 14px; font-size: 13.5px; color: var(--ink-2); }
+
+.amount-display {
+  border: 2px solid var(--action);
+  background: var(--surface);
+  border-radius: var(--radius-field);
+  padding: 13px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.payment-method-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-field);
+  overflow: hidden;
+  margin-bottom: 14px;
+  list-style: none;
+  padding: 0;
+}
+.payment-method-list label {
+  padding: 13px;
+  border-bottom: 1px solid var(--sand);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  cursor: pointer;
+}
+.payment-method-list li:last-child label { border-bottom: 0; }
+.payment-method-list label:has(input:checked) { background: var(--sand); font-weight: var(--weight-ui-medium); }
+.payment-method-list input[type="radio"] {
+  width: 18px; height: 18px;
+  accent-color: var(--action);
+}
+
+/* =====================================================================
+   Barre d’action collante · navigation · pilule démo
+   ===================================================================== */
+
+.sticky-bar {
+  background: var(--deep);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sticky-bar__eyebrow { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--ink-2-on-deep); }
+.sticky-bar__price { margin: 2px 0 0; font-family: var(--font-mono); font-size: 19px; color: var(--ground); }
+.sticky-bar .btn { margin-left: auto; }
+
+.bottom-nav {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  padding: 10px 8px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+}
+.bottom-nav__item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 56px;
+  color: var(--ink-2);
+  text-decoration: none;
+  position: relative;
+}
+.bottom-nav__item:hover { color: var(--ink-2); }
+.bottom-nav__item.is-active { color: var(--action); font-weight: 600; }
+.bottom-nav__item.is-active:hover { color: var(--action); }
+.bottom-nav__icon { font-size: 18px; }
+.bottom-nav__label { font-size: 11px; }
+.bottom-nav__badge {
+  position: absolute;
+  top: -4px; right: 6px;
+  background: var(--state-danger-ink);
+  color: var(--surface);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+}
+
+/* Demo pill: closed / expanded panel */
+.demo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--deep);
+  color: var(--ink-on-deep);
+  border-radius: var(--radius-pill);
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border: 0;
+  cursor: pointer;
+}
+.demo-panel {
+  background: var(--deep);
+  color: var(--ink-on-deep);
+  border-radius: var(--radius-card);
+  padding: 14px;
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.demo-panel__label { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; }
+.demo-panel__switch {
+  display: flex;
+  background: var(--deep-2);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+.demo-panel__switch > * {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+  border-radius: var(--radius-pill);
+  color: inherit;
+  text-decoration: none;
+}
+.demo-panel__switch > .is-active { background: var(--ground); color: var(--ink); font-weight: var(--weight-ui-medium); }
+
+/* Fixed placement (wired in B9) — PDC §8: bottom-left, z 90, 40 px tall,
+   and the sticky action bar gains 48 px so the pill never covers it. */
+.demo-bar {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 8px;
+}
+.demo-bar .demo-pill { height: 40px; padding: 0 16px; line-height: 1; } /* PDC §8: 40 px tall, ~118 px wide */
+.demo-bar .demo-panel { width: 280px; } /* C01's panel width — the fixed container would otherwise shrink-wrap it */
+.demo-panel__switch > * { white-space: nowrap; }
+body.has-demo-bar { --demo-bar-clearance: 48px; }
+.demo-panel__reset {
+  background: none; border: 0;
+  color: var(--heart-on-deep);
+  font: var(--weight-ui-medium) 13px var(--font-ui);
+  text-align: left;
+  text-decoration: underline;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.demo-panel__note { margin: 0; font-size: 12px; color: var(--ink-2-on-deep); }
+
+/* =====================================================================
+   Espace pro — shell (sidebar desktop / bottom nav mobile)
+   Source: R01/R02/R04/R06/R07/R09/R11/R14 (mobile bottom-nav, same shape
+   as Composants.dc.html's own nav swatch) + R12/R13/R14-desktop (dark
+   216px sidebar). No maquette actually composites the demo pill over the
+   bottom nav bar — demo-bar.js already injects it fixed bottom-left on
+   every page (public and pro alike), so the sidebar below deliberately
+   does NOT repeat a second "MODE DÉMO" control the way R12/R13 draw one
+   at the foot of the sidebar; .bottom-nav ~ .demo-bar just lifts the
+   existing pill clear of the fixed nav bar's icons.
+   ===================================================================== */
+
+.pro-sidebar {
+  display: none;
+  width: 216px;
+  flex: 0 0 auto;
+  background: var(--deep);
+  color: var(--ink-on-deep);
+  padding: 22px 18px;
+  flex-direction: column;
+  gap: 8px;
+}
+@media (min-width: 900px) { .pro-sidebar { display: flex; } }
+.pro-sidebar__logo { font-family: var(--font-display); font-size: 24px; color: var(--ground); margin: 0 0 14px; }
+.pro-sidebar__item {
+  padding: 12px; border-radius: 10px; font-size: 15px;
+  color: inherit; text-decoration: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.pro-sidebar__item:hover { background: var(--deep-2); color: inherit; }
+.pro-sidebar__item.is-active { background: var(--ground); color: var(--ink); font-weight: 600; }
+.pro-sidebar__item.is-active:hover { background: var(--ground); color: var(--ink); }
+.pro-sidebar__badge {
+  margin-left: auto; background: var(--state-danger-ink); color: var(--surface);
+  border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 11px; padding: 2px 7px;
+}
+.pro-sidebar__spacer { margin-top: auto; }
+.pro-sidebar__add {
+  display: block; text-align: center; text-decoration: none;
+  font: var(--weight-ui-medium) 14px/1 var(--font-ui); color: var(--ink);
+  background: var(--ground); border-radius: var(--radius-pill); padding: 14px;
+  border: 0; cursor: pointer; width: 100%;
+}
+
+@media (min-width: 900px) { .bottom-nav { display: none; } }
+/* Lifts the demo pill clear of the fixed bottom-nav bar. :has() (not a
+   sibling selector) so it still matches when .bottom-nav is nested inside
+   an extra positioning wrapper (pro/index.html and pro/agenda.html wrap it
+   with the FAB) — a sibling combinator broke there since .bottom-nav
+   wasn't a direct sibling of .demo-bar in the DOM on those two pages. */
+@media (max-width: 899px) {
+  body:has(.bottom-nav) .demo-bar { bottom: 88px; }
+}
+
+.pro-page { display: flex; min-height: 100vh; }
+.pro-page__main { flex: 1; min-width: 0; }
+
+/* "＋" circle that opens the Ajouter-un-RDV sheet from pro/index.html and
+   pro/agenda.html (R01/R12) — positioned by the caller (R01 floats it
+   above the bottom-nav corner; the sidebar's own "＋ Ajouter un RDV" pill
+   covers the same action on desktop, see .pro-sidebar__add above). */
+.fab {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--action); border: 1px solid var(--ink); box-shadow: var(--shadow-button);
+  color: var(--surface); display: flex; align-items: center; justify-content: center;
+  font-size: 24px; cursor: pointer; flex: none;
+}
+
+/* Stat tiles (R07/R13's 4-up RDV / Annul. / Absences / Total grid) */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stat-tile {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-field);
+  padding: 10px; text-align: center;
+}
+.stat-tile__value { margin: 0; font-family: var(--font-mono); font-size: 17px; }
+.stat-tile__label { margin: 2px 0 0; font-size: 11px; color: var(--ink-2); }
+
+/* On/off toggle switch (R09's month-opening rows) — real button[role=switch] */
+.switch {
+  width: 48px; height: 28px; border-radius: var(--radius-pill);
+  background: var(--rule); display: inline-flex; align-items: center; padding: 3px;
+  border: 0; cursor: pointer; flex: none;
+}
+.switch__thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); transition: transform .18s cubic-bezier(.2,.7,.3,1); }
+.switch[aria-checked="true"] { background: var(--action); }
+.switch[aria-checked="true"] .switch__thumb { transform: translateX(20px); }
+
+/* Data table (R13 clientes list) */
+.data-table { width: 100%; border: 1px solid var(--rule); border-radius: var(--radius-card); overflow: hidden; background: var(--surface); }
+.data-table__head { display: flex; gap: 12px; padding: 10px 16px; background: var(--sand); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: #5A4939; }
+.data-table__row { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--sand); align-items: center; font-size: 14.5px; text-decoration: none; color: inherit; cursor: pointer; }
+.data-table__row:last-child { border-bottom: 0; }
+.data-table__row:hover, .data-table__row.is-active { background: var(--sand); }
+.data-table__avatar {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--sand); border: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 15px; flex: none;
+}
+
+/* Sheet overlay (R03/R06/R11 bottom sheets over a dimmed backdrop) */
+.sheet-overlay { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; }
+.sheet-overlay__backdrop { position: absolute; inset: 0; background: rgba(36, 24, 17, .35); border: 0; padding: 0; cursor: pointer; }
+.sheet-overlay .sheet {
+  position: relative; width: 100%; max-width: 480px;
+  background: var(--surface); padding: 18px 20px 22px;
+  max-height: 92vh; overflow-y: auto;
+}
+@media (min-width: 900px) {
+  .sheet-overlay { align-items: center; }
+  .sheet-overlay .sheet { border-radius: var(--radius-sheet); }
+}
+
+/* Weekly-hours editor row (R09) */
+.hours-row { padding: 14px; border-bottom: 1px solid var(--sand); }
+.hours-row:last-child { border-bottom: 0; }
+.hours-row__head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.hours-row__check {
+  width: 20px; height: 20px; border: 1px solid var(--ink); border-radius: 5px;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; flex: none;
+  background: none; color: transparent; cursor: pointer;
+}
+.hours-row__check[aria-checked="true"] { background: var(--action); color: var(--surface); }
+.hours-row__name { font-weight: 600; font-size: 14.5px; }
+.hours-row__note { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+.hours-row__range { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.hours-row__range:last-child { margin-bottom: 0; }
+.hours-row__time { border: 1px solid var(--rule); background: var(--ground); border-radius: 8px; padding: 11px 12px; font-family: var(--font-mono); font-size: 14px; }

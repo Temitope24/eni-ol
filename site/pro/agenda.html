@@ -1,0 +1,204 @@
+<!doctype html>
+<!--
+  pro/agenda.html — batches B25 (Jour/Liste/Carte, mobile) + B26 (Semaine +
+  requests panel, desktop). Source: PRO R04 (Jour + trajets), R05 (Carte,
+  "SVG stylisé, aucune tuile"), R12 (Semaine + panneau demandes, desktop
+  1280), all read in full. "Liste" is named in every segmented control here
+  but never itself drawn in any artboard — extrapolated as a simple
+  date-grouped list, flagged rather than invented as a full design.
+  Below 900px, Semaine reuses the same grid markup horizontally scrollable
+  rather than a bespoke mobile week layout (no mobile week artboard exists).
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Agenda — Eni’ol</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/motion.css">
+<link rel="stylesheet" href="../assets/css/pro-motion-off.css">
+<script src="../assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; }
+  .pro-page__main { padding: 18px 20px 100px; max-width: 900px; }
+  @media (min-width: 900px) { .pro-page__main { padding: 22px 24px; max-width: none; } }
+  .agenda-shell { display: flex; }
+  .agenda-content { flex: 1; min-width: 0; }
+  .agenda-side {
+    display: none; width: 340px; flex: 0 0 auto; border-left: 1px solid var(--rule); background: var(--surface);
+    padding: 22px 20px; flex-direction: column; gap: 14px; margin: -22px -24px -22px 24px;
+  }
+  @media (min-width: 900px) { body.view-semaine .agenda-side { display: flex; } }
+
+  .agenda-head-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .agenda-head-row h1 { font-size: 26px; margin: 0; }
+  .agenda-head__today { font-size: 13px; color: var(--action); text-decoration: underline; }
+  @media (min-width: 900px) { .agenda-head__today { display: none; } }
+  .agenda-tabs-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .depart-note { margin-left: auto; font-size: 14px; color: var(--ink-2); display: none; white-space: nowrap; }
+  @media (min-width: 900px) { .depart-note { display: inline; } }
+
+  .date-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
+  .date-strip button {
+    flex: 0 0 auto; width: 52px; text-align: center; border: 1px solid var(--rule); border-radius: 10px;
+    padding: 9px 0; font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); background: var(--surface); cursor: pointer;
+  }
+  .date-strip button.is-active { background: var(--action); color: var(--surface); border-color: var(--ink); }
+  body.view-semaine .date-strip { display: none; }
+
+  .jour-title { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--ink); padding-bottom: 8px; margin-bottom: 14px; }
+  .jour-title h2 { font-size: 20px; margin: 0; }
+  .jour-title span { font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); }
+
+  /* R04's rail changes meaning per row: light grey before the first event
+     (a plain gap), solid dark spanning a confirmed booking, dashed orange
+     spanning a pending request — and BETWEEN events, a separate thin
+     dotted 2px rail sits in its own narrow column next to the content,
+     not a border on the content column itself. */
+  .day-timeline__row { display: flex; gap: 10px; }
+  .day-timeline__time { width: 42px; flex: none; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); padding-top: 2px; }
+  .day-timeline__rail { flex: 1; border-left: 2px solid var(--rule); padding-left: 12px; padding-bottom: 14px; }
+  .day-timeline__rail--event { border-left-color: var(--ink); }
+  .day-timeline__rail--pending { border-left: 2px dashed var(--state-warn-ink); }
+  .day-timeline__note { margin: 0; font-size: 13.5px; }
+  .day-timeline__card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card); padding: 12px; }
+  .day-timeline__card--danger { border-style: dashed; border-color: var(--state-warn-ink); background: var(--ground); }
+  .day-timeline__card-head { display: flex; justify-content: space-between; gap: 8px; }
+  .day-timeline__card-head p { margin: 0; font-family: var(--font-mono); font-size: 14px; }
+  .day-timeline__card-name { margin: 6px 0 0; font-weight: 600; font-size: 15px; }
+  .day-timeline__card-sub { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-body); }
+  .day-timeline__card-loc { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+  .day-timeline__card-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+  .day-timeline__gap-inner { flex: 1; display: flex; gap: 12px; padding-bottom: 14px; }
+  .day-timeline__gap-rail-col { width: 2px; flex: none; display: flex; }
+  .day-timeline__gap-rail-col span { flex: 1; border-left: 2px dotted var(--ink-3); }
+  .day-timeline__gap-rail-col--danger span { border-left-color: var(--btn-destructive-border); }
+  .day-timeline__gap-content { padding-left: 10px; }
+
+  .liste-group + .liste-group { margin-top: 18px; }
+  .liste-group__date { margin: 0 0 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--ink-3); text-transform: uppercase; }
+
+  .carte-box { background: var(--sand); border: 1px solid var(--rule); border-radius: var(--radius-card); padding: 16px; position: relative; }
+  .carte-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; font-size: 12px; color: var(--ink-body); }
+  .carte-legend span { display: flex; align-items: center; gap: 5px; }
+  .carte-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .carte-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .carte-row { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card); padding: 12px; }
+  .carte-row--pending { background: var(--ground); border: 1px dashed var(--state-warn-ink); }
+  .carte-row__num { width: 26px; height: 26px; border-radius: 50%; background: var(--action); color: var(--surface); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; flex: none; }
+  .carte-row--pending .carte-row__num { background: none; border: 2px dashed var(--state-warn-ink); color: var(--state-warn-ink); }
+
+  .week-grid { display: grid; grid-template-columns: 56px repeat(7, 1fr); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; background: var(--surface); min-width: 760px; }
+  .week-grid__daycol-head { background: var(--sand); border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); padding: 10px; text-align: center; }
+  .week-grid__daycol-head p { margin: 0; }
+  .week-grid__daycol-head .dow { font-family: var(--font-mono); font-size: 11px; color: #5A4939; }
+  .week-grid__daycol-head .dom { font-family: var(--font-mono); font-size: 15px; }
+  .week-grid__gutter-head { background: var(--sand); border-bottom: 1px solid var(--rule); }
+  .week-grid__body { display: contents; }
+  .week-grid__hour-label { border-top: 1px solid var(--sand); padding: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); text-align: right; }
+  .week-grid__daycol { position: relative; border-top: 1px solid var(--sand); border-left: 1px solid var(--rule); }
+  .week-scroll { overflow-x: auto; }
+  .week-event {
+    position: absolute; left: 3px; right: 3px; border-radius: 8px; padding: 6px 8px; overflow: hidden; font-size: 11px;
+    background: var(--deep); color: var(--ink-on-deep);
+  }
+  .week-event p { margin: 0; }
+  .week-event__time { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2-on-deep); }
+  .week-event__name { font-size: 12px; font-weight: 600; }
+  .week-event--pending { background: var(--state-warn-bg); color: var(--state-warn-ink); border: 1px dashed var(--state-warn-ink); }
+  .week-event--danger { background: var(--state-danger-bg); color: var(--state-danger-ink); border: 1px dashed var(--state-danger-ink); }
+  .week-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink-body); margin-top: 14px; }
+  .week-legend span { display: flex; align-items: center; gap: 6px; }
+  .week-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .side-request { background: var(--ground); border: 1px solid var(--rule); border-radius: var(--radius-card); padding: 12px; }
+  .side-request--attention { border-color: var(--btn-destructive-border); }
+  .side-request__head { display: flex; justify-content: space-between; gap: 8px; }
+  .side-request__head p { margin: 0; font-weight: 600; font-size: 15px; }
+  .side-request__meta { margin: 4px 0 0; font-size: 13px; color: var(--ink-body); }
+  .side-request__signal { margin: 4px 0 0; font-size: 12.5px; }
+  .side-request__actions { display: flex; gap: 6px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="pro-page">
+  <nav class="pro-sidebar" aria-label="Navigation Eni’ol">
+    <p class="pro-sidebar__logo">Eni’ol</p>
+    <a class="pro-sidebar__item" href="index.html">☀ Aujourd’hui</a>
+    <a class="pro-sidebar__item" href="demandes.html">✉ Demandes <span class="pro-sidebar__badge" data-badge="demandes" hidden></span></a>
+    <a class="pro-sidebar__item is-active" href="agenda.html">▦ Agenda</a>
+    <a class="pro-sidebar__item" href="clientes.html">♡ Clientes</a>
+    <a class="pro-sidebar__item" href="prestations.html">✂ Prestations</a>
+    <a class="pro-sidebar__item" href="disponibilites.html">◷ Disponibilités</a>
+    <a class="pro-sidebar__item" href="encaissements.html">€ Encaissements</a>
+    <a class="pro-sidebar__item" href="reglages.html">⚙ Réglages</a>
+    <div class="pro-sidebar__spacer">
+      <button type="button" class="pro-sidebar__add" data-open="ajouter-rdv">＋ Ajouter un RDV</button>
+    </div>
+  </nav>
+
+  <main class="pro-page__main">
+    <div class="agenda-shell">
+      <div class="agenda-content">
+        <div class="agenda-head-row">
+          <h1>Agenda</h1>
+          <a class="agenda-head__today" href="#" id="agenda-today">Aujourd’hui</a>
+        </div>
+        <div class="agenda-tabs-row">
+          <div class="segmented segmented--thumb" id="agenda-tabs">
+            <div class="segmented__thumb"></div>
+            <label class="segmented__item"><input type="radio" name="agenda-view-r" value="jour" class="sr-only" checked>Jour</label>
+            <label class="segmented__item"><input type="radio" name="agenda-view-r" value="semaine" class="sr-only">Semaine</label>
+            <label class="segmented__item"><input type="radio" name="agenda-view-r" value="liste" class="sr-only">Liste</label>
+            <label class="segmented__item"><input type="radio" name="agenda-view-r" value="carte" class="sr-only">Carte</label>
+          </div>
+          <span class="depart-note" id="agenda-depart"></span>
+        </div>
+
+        <div class="date-strip" id="date-strip"></div>
+
+        <div id="view-jour"></div>
+        <div id="view-semaine" hidden>
+          <div class="week-scroll"><div class="week-grid" id="week-grid"></div></div>
+          <div class="week-legend">
+            <span><i style="background:var(--deep);"></i>RDV accepté</span>
+            <span><i style="background:var(--state-warn-bg); border:1px dashed var(--state-warn-ink);"></i>Demande en attente</span>
+            <span><i style="background:var(--state-danger-bg); border:1px dashed var(--state-danger-ink);"></i>Trajet impossible</span>
+          </div>
+        </div>
+        <div id="view-liste" hidden></div>
+        <div id="view-carte" hidden></div>
+      </div>
+
+      <aside class="agenda-side" id="agenda-side"></aside>
+    </div>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Navigation Eni’ol" style="position:fixed; left:0; right:0; bottom:0; z-index:10;">
+  <a class="bottom-nav__item" href="index.html"><span class="bottom-nav__icon">☀</span><span class="bottom-nav__label">Aujourd’hui</span></a>
+  <a class="bottom-nav__item" href="demandes.html"><span class="bottom-nav__icon">✉</span><span class="bottom-nav__badge" data-badge="demandes" hidden></span><span class="bottom-nav__label">Demandes</span></a>
+  <a class="bottom-nav__item is-active" href="agenda.html"><span class="bottom-nav__icon">▦</span><span class="bottom-nav__label">Agenda</span></a>
+  <a class="bottom-nav__item" href="clientes.html"><span class="bottom-nav__icon">♡</span><span class="bottom-nav__label">Clientes</span></a>
+  <a class="bottom-nav__item" href="reglages.html"><span class="bottom-nav__icon">⋯</span><span class="bottom-nav__label">Plus</span></a>
+</nav>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/dates.js"></script>
+<script src="../assets/js/travel.js"></script>
+<script src="../assets/js/availability.js"></script>
+<script src="../assets/js/status.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/strings.js"></script>
+<script src="../assets/js/pro/nav-badge.js"></script>
+<script src="../assets/js/pro/ajouter-rdv.js"></script>
+<script src="../assets/js/pro/request-actions.js"></script>
+<script src="../assets/js/pro/agenda.js"></script>
+<script src="../assets/js/demo-bar.js"></script>
+</body>
+</html>

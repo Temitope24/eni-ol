@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tests — moteur de disponibilités</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <style>
+    main { max-width: 760px; margin: 0 auto; padding: 32px 20px 96px; }
+    h1 { font-size: var(--text-d3-size); margin-bottom: 8px; }
+    #summary { margin: 0 0 20px; color: var(--ink-2); }
+    #results { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    #results li { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-field); padding: 10px 12px; font-size: 14px; }
+    #results li.fail { border-color: var(--state-danger-ink); background: var(--state-danger-bg); }
+    #results small { display: block; color: var(--ink-2); font-family: var(--font-mono); font-size: 12px; margin-top: 2px; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Moteur de disponibilités — assertions</h1>
+    <p id="summary">…</p>
+    <ul id="results"></ul>
+  </main>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/strings.js"></script>
+  <script src="assets/js/dates.js"></script>
+  <script src="assets/js/travel.js"></script>
+  <script src="assets/js/availability.js"></script>
+  <script src="assets/js/status.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/demo-bar.js"></script>
+
+  <!-- Not linked from any page. BUILD-PLAN §4: asserts the slot engine on
+       the seed scenario. Runs against a fresh copy of the seed, never the
+       persisted demo state. -->
+  <script id="tests">
+  window.ENIOL_RUN_TESTS = function (report) {
+    var A = window.ENIOL_AVAILABILITY, ST = window.ENIOL_STATUS, D = window.ENIOL_DATES;
+    var NOW_ISO = "2026-09-11T18:40", now = D.parseLocal(NOW_ISO);
+    function fresh() { return JSON.parse(JSON.stringify(window.ENIOL_SEED)); }
+    function eq(name, got, want) { report(name, got === want, "attendu " + JSON.stringify(want) + " · obtenu " + JSON.stringify(got)); }
+    function ok(name, cond, detail) { report(name, !!cond, detail || ""); }
+    function byId(list, id) { return list.filter(function (x) { return x.id === id; })[0]; }
+    function septemberDays() { var out = []; for (var d = 1; d <= 30; d++) out.push("2026-09-" + (d < 10 ? "0" : "") + d); return out; }
+
+    var s = fresh();
+    var montreuil = byId(byId(s.clients, "cl-ines").adresses, "ad-ines-1");
+
+    // --- Dashboard signals (R02 / R03 / R04 / R05 / R12) ---
+    var m = A.evaluateBooking(s, "rdv-maelys-1", now);
+    eq("Maëlys 16:00 — ne tient pas", m.signal.level, "ne_tient_pas");
+    eq("Maëlys — « il manque ≈ 25 min »", m.arrivee.fit.manqueMin, 25);
+    eq("Maëlys — « ≈ 55 min nécessaires »", m.arrivee.trajetMin, 55);
+    eq("Maëlys — « écart de 30 min »", m.arrivee.ecartMin, 30);
+    eq("Maëlys — libellé", m.signal.label, "Ne tient pas : il manque ≈ 25 min");
+    var p = A.proposeAlternative(s, "rdv-maelys-1", now);
+    eq("Maëlys — « Proposer 17:00 »", p && p.time, "17:00");
+
+    var f = A.evaluateBooking(s, "rdv-fatou-1", now);
+    eq("Fatou, Cergy — Loin", f.signal.level, "loin");
+    eq("Fatou — libellé", f.signal.label, "Loin : ≈ 1 h 15 en transports");
+    eq("Fatou — « aller-retour ≈ 2 h 30 »", f.allerRetourMin, 150);
+
+    var g = A.evaluateBooking(s, "rdv-grace-1", now);
+    eq("Grâce, mercredi — part du lycée, OK", g.signal.level, "ok");
+    eq("Grâce — libellé", g.signal.label, "≈ 20 min depuis le lycée");
+
+    var i = A.evaluateBooking(s, "rdv-ines-1", now);
+    eq("Inès — ≈ 35 min depuis le RDV d’Aïcha", i.arrivee.trajetMin, 35);
+    eq("Inès — « partir à 12:25 »", i.partirA, "12:25");
+    eq("Inès — le RDV suivant ne tient pas (R03)", i.suivant && i.suivant.fit.level, "ne_tient_pas");
+
+    var a = A.evaluateBooking(s, "rdv-aicha-1", now);
+    eq("Aïcha — libellé", a.signal.label, "≈ 20 min depuis chez moi");
+
+    eq("Sarah — projet, pas de trajet", A.evaluateBooking(s, "rdv-sarah-1", now).type, "projet");
+
+    // --- Slot states (P05 A/B, P14) ---
+    eq("Octobre fermé", A.slotsForDay(s, { date: "2026-10-03", serviceId: "pose", clientLocation: montreuil, now: now }).status, "mois_ferme");
+    eq("Samedi 19 : déjà 3 RDV → complet", A.slotsForDay(s, { date: "2026-09-19", serviceId: "lace-frontale", clientLocation: montreuil, now: now }).status, "complet");
+    eq("Préavis 5 j (décoloration) → mercredi 16 trop tôt", A.slotsForDay(s, { date: "2026-09-16", serviceId: "decoloration-epilation", now: now }).status, "trop_tot");
+    eq("« Bac de français » bloque le dimanche 13", A.slotsForDay(s, { date: "2026-09-13", serviceId: "pose", clientLocation: montreuil, now: now }).status, "ferme");
+    eq("Vendredi 18 : jour fermé (R09)", A.slotsForDay(s, { date: "2026-09-18", serviceId: "pose", clientLocation: montreuil, now: now }).status, "ferme");
+    eq("Fabrication → pas de liste de créneaux", A.slotsForDay(s, { date: "2026-09-23", serviceId: "fabrication", now: now }).status, "projet");
+
+    var w = A.slotsForDay(s, { date: "2026-09-23", serviceId: "lace-frontale", clientLocation: montreuil, now: now });
+    eq("Mercredi 23, lace frontale à Montreuil → créneaux", w.status, "ok");
+    ok("Mercredi 23 — départ du domicile après 14:00 (trajet + préparation comptés)",
+      w.slots.every(function (x) { return A.toMin(x.time) - x.trajetMin - 15 >= 14 * 60; }), JSON.stringify(w.slots));
+
+    var d16 = A.slotsForDay(s, { date: "2026-09-16", serviceId: "pose", clientLocation: montreuil, now: now });
+    ok("Mercredi 16 — la RDV de Grâce apparaît « pris »", d16.taken.some(function (t) { return t.time === "14:30"; }), JSON.stringify(d16.taken));
+    ok("Mercredi 16 — un créneau « ♡ Conseillé » qui s’enchaîne après Grâce", d16.slots.some(function (x) { return x.conseille; }), JSON.stringify(d16.slots));
+
+    var cal = A.monthCalendar(s, { year: 2026, month: 9, serviceId: "lace-frontale", clientLocation: montreuil, now: now });
+    eq("Calendrier — 11 sept. est « aujourd’hui »", cal.jours[10].aujourdhui, true);
+    eq("Calendrier — 10 sept. passé", cal.jours[9].status, "passe");
+    eq("Calendrier — octobre fermé", A.monthCalendar(s, { year: 2026, month: 10, serviceId: "pose", now: now }).ouvert, false);
+
+    // --- Invariants over every September day × service ---
+    var evening = true, perHalf = true, lead = true, selectableFits = true, detail = "";
+    s.services.forEach(function (svc) {
+      septemberDays().forEach(function (date) {
+        [null, montreuil].forEach(function (loc) {
+          var r = A.slotsForDay(s, { date: date, serviceId: svc.id, clientLocation: loc, now: now });
+          var counts = {}, conseilles = {};
+          r.slots.forEach(function (x) {
+            if (A.toMin(x.fin) > 19 * 60) { evening = false; detail = svc.id + " " + date + " " + x.time + "→" + x.fin; }
+            counts[x.halfDay] = (counts[x.halfDay] || 0) + 1;
+            if (x.conseille) conseilles[x.halfDay] = (conseilles[x.halfDay] || 0) + 1;
+            if (D.parseLocal(date + "T" + x.time) < new Date(now.getTime() + svc.delaiMinimumHeures * 3600000)) lead = false;
+            // Only slots computed with travel (a client address + a service
+            // that goes to the client) can be judged by the travel signal.
+            if (loc && svc.lieu !== "sans_deplacement") {
+              var t = JSON.parse(JSON.stringify(s));
+              t.bookings.push({ id: "t", clienteId: "cl-ines", serviceId: svc.id, debut: date + "T" + x.time, fin: date + "T" + x.fin,
+                lieu: svc.lieu, adresseId: "ad-ines-1", statut: "en_attente", repondreAvant: "2026-12-31T00:00" });
+              var ev = A.evaluateBooking(t, "t", now);
+              if (ev.type === "trajet" && (ev.signal.level === "ne_tient_pas" || (ev.suivant && ev.suivant.fit.level === "ne_tient_pas"))) {
+                selectableFits = false; detail = "sélectionnable mais « ne tient pas » : " + svc.id + " " + date + " " + x.time;
+              }
+            }
+          });
+          for (var k in counts) if (counts[k] > 3 || (conseilles[k] || 0) > 1) perHalf = false;
+        });
+      });
+    });
+    ok("Jamais de fin après 19:00 (« pas le soir à partir de 19h »)", evening, detail);
+    ok("Max 3 créneaux et 1 « Conseillé » par demi-journée", perHalf);
+    ok("Préavis de chaque prestation respecté", lead);
+    ok("Tout créneau sélectionnable tient au tableau de bord", selectableFits, detail);
+
+    // --- Status machine (DATA-MODEL §5) ---
+    var s2 = fresh();
+    var r = ST.apply(s2, "rdv-maelys-1", "terminer", null, NOW_ISO);
+    ok("Transition interdite refusée (terminer une demande)", !r.ok, r.error);
+    ST.apply(s2, "rdv-maelys-1", "accepter", {}, NOW_ISO);
+    var mb = byId(s2.bookings, "rdv-maelys-1");
+    eq("Accepter → arrhes attendues", mb.statut, "acceptee_arrhes_attendues");
+    eq("Arrhes dues à la fin de l’annulation gratuite (début − 48 h)", mb.arrhesDateLimite, "2026-09-17T16:00");
+    ST.apply(s2, "rdv-maelys-1", "declarerArrhes", null, NOW_ISO);
+    eq("« J’ai envoyé les arrhes » ne confirme pas à lui seul", mb.statut, "acceptee_arrhes_attendues");
+    ST.apply(s2, "rdv-maelys-1", "arrhesRecues", { moyen: "Lydia" }, NOW_ISO);
+    eq("Arrhes reçues → confirmée", mb.statut, "confirmee");
+    ok("Arrhes reçues → ligne au livre des recettes", s2.payments.some(function (x) { return x.rdvId === "rdv-maelys-1" && x.type === "arrhes" && x.montantEuros === 20; }));
+
+    var s3 = fresh();
+    ST.apply(s3, "rdv-grace-1", "accepter", {}, NOW_ISO);
+    eq("Sans arrhes (entretien) → confirmée directement", byId(s3.bookings, "rdv-grace-1").statut, "confirmee");
+
+    var s4 = fresh();
+    ST.apply(s4, "rdv-maelys-1", "proposer", { debut: "2026-09-19T17:00", fin: "2026-09-19T19:00" }, NOW_ISO);
+    var pb = byId(s4.bookings, "rdv-maelys-1");
+    eq("Proposer → nouveau créneau proposé", pb.statut, "nouveau_creneau_propose");
+    eq("La cliente a 48 h pour répondre (P10 C : dim. 13 sept. 18:40)", pb.repondreAvant, "2026-09-13T18:40");
+    ST.apply(s4, "rdv-maelys-1", "accepterProposition", null, NOW_ISO);
+    eq("La cliente accepte → arrhes attendues", pb.statut, "acceptee_arrhes_attendues");
+
+    var s5 = fresh();
+    ST.expireOverdue(s5, "2026-09-12T14:00");
+    eq("Expiration — Maëlys (réponse avant 11 sept. 23:40)", byId(s5.bookings, "rdv-maelys-1").statut, "expiree");
+    eq("Expiration — Fatou (réponse avant 12 sept. 13:40)", byId(s5.bookings, "rdv-fatou-1").statut, "expiree");
+    eq("Expiration — pas Grâce (réponse avant 12 sept. 16:40)", byId(s5.bookings, "rdv-grace-1").statut, "en_attente");
+
+    var s6 = fresh();
+    ok("Annuler une demande en attente (P10 « Annuler ma demande »)", ST.apply(s6, "rdv-fatou-1", "annulerCliente", null, NOW_ISO).ok);
+  };
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("DOMContentLoaded", function () {
+      var list = document.getElementById("results"), pass = 0, fail = 0;
+      window.ENIOL_RUN_TESTS(function (name, ok, detail) {
+        ok ? pass++ : fail++;
+        var li = document.createElement("li");
+        li.className = ok ? "pass" : "fail";
+        li.textContent = (ok ? "✓ " : "✕ ") + name;
+        if (!ok && detail) { var sm = document.createElement("small"); sm.textContent = detail; li.appendChild(sm); }
+        list.appendChild(li);
+      });
+      document.getElementById("summary").textContent = pass + " réussis · " + fail + " en échec";
+    });
+  }
+  </script>
+</body>
+</html>

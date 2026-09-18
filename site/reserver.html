@@ -1,0 +1,91 @@
+<!doctype html>
+<!--
+  reserver.html — batch B12 (shell + step router) with B13 (step 1),
+  B14 (step 2) and B15 (step 3 + the P14 desktop layout) wired in.
+
+  Mobile chrome, from fresh reads of P03/P04/P05: ONE bordered header block
+  holding the back/logo/close row, the progress bar and the step label
+  (padding 12px 20px 10px, border-bottom under the label — not under the
+  logo row).
+  Desktop chrome (≥ 900 px), from P14: header "Eni’ol · Ma demande de
+  rendez-vous · Besoin d’aide ? Écrivez-moi · ✕", no back arrow, no bottom
+  sticky bar — the Continuer button lives in the sticky "Ma demande" card.
+  The left step list appears at ≥ 1280 px (P14's own width); between 900
+  and 1279 there's no room for P14's 260 + 380 px side columns, so the
+  step list is dropped and the header keeps the progress bar instead.
+  Steps 4–6 (B16/B17/B18), the fabrication sur mesure "projet" branch
+  (B21) and the "Demande envoyée" confirmation takeover (B19, P09 — no
+  shared chrome, its own dark full-bleed screen) are wired into
+  booking-flow.js.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Réserver — Eni’ol</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/booking-flow.css">
+<link rel="stylesheet" href="assets/css/motion.css">
+<link rel="stylesheet" href="assets/css/public-motion-off.css">
+<script src="assets/js/motion.js"></script>
+</head>
+<body class="booking">
+
+<div class="booking-frame">
+  <header class="booking-header">
+    <div class="booking-header__row">
+      <button type="button" class="icon-btn booking-header__back" id="btn-back" aria-label="Étape précédente">←</button>
+      <a class="logo" href="index.html" data-nav="back">Eni’ol</a>
+      <span class="booking-header__title">Ma demande de rendez-vous</span>
+      <span class="booking-header__help">Besoin d’aide&nbsp;? <a href="https://ig.me/m/pose.de.perruques">Écrivez-moi</a></span>
+      <button type="button" class="icon-btn booking-header__close" id="btn-close" aria-label="Quitter la réservation">✕</button>
+    </div>
+    <div class="progress-bar" id="progress-bar"><div class="progress-bar__fill" id="progress-fill"></div></div>
+    <p class="progress-step-label" id="step-label" aria-live="polite"></p>
+  </header>
+
+  <div class="booking-body">
+    <nav class="booking-steps" aria-label="Étapes de la demande">
+      <ol id="booking-steps-list"></ol>
+    </nav>
+
+    <main class="step-root">
+      <div id="step-root" class="step-panes"><!-- rendered by booking-flow.js --></div>
+    </main>
+
+    <aside class="booking-summary" aria-label="Ma demande">
+      <div class="booking-summary__card">
+        <p class="booking-summary__title">Ma demande</p>
+        <div id="summary-body"></div>
+        <button type="button" class="btn btn--primary booking-summary__cta" id="btn-continue-desktop">Continuer</button>
+        <p class="booking-summary__ok" id="summary-cancel"></p>
+        <p class="booking-summary__note" id="summary-note"></p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="sticky-bar on-deep" id="sticky-bar">
+    <div>
+      <p class="sticky-bar__eyebrow" id="sticky-eyebrow">SUR PLACE</p>
+      <p class="sticky-bar__price" id="sticky-price">—</p>
+    </div>
+    <button type="button" class="btn btn--on-deep" id="btn-continue">Continuer</button>
+  </div>
+
+  <div class="confirmation on-deep" id="confirmation" hidden><!-- rendered by booking-flow.js on submit --></div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/strings.js"></script>
+<script src="assets/js/dates.js"></script>
+<script src="assets/js/travel.js"></script>
+<script src="assets/js/availability.js"></script>
+<script src="assets/js/status.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/demo-bar.js"></script>
+<script src="assets/js/booking-flow.js"></script>
+</body>
+</html>

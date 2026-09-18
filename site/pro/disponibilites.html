@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+  pro/disponibilites.html — batch B31. Source: PRO R09, read in full, every
+  section (raccourcis, mes horaires, exceptions, ouverture des réservations,
+  déplacements). No desktop artboard — single column widens like every
+  other pro page without one.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Disponibilités — Eni’ol</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/motion.css">
+<link rel="stylesheet" href="../assets/css/pro-motion-off.css">
+<script src="../assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; }
+  .pro-page__main { padding: 18px 20px 100px; max-width: 560px; }
+  @media (min-width: 900px) { .pro-page__main { padding: 26px 32px 40px; } }
+  h1.page-title { font-size: 26px; margin: 0 0 18px; }
+  .dp-section { margin-bottom: 22px; }
+  .dp-eyebrow { margin: 0 0 10px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--ink-3); }
+  .dp-chip {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-pill); padding: 11px 14px;
+    font-size: 13.5px; color: var(--ink-body); cursor: pointer;
+  }
+  .dp-chip.is-on { background: var(--sand); border-color: var(--ink); }
+  .dp-list { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card); overflow: hidden; }
+  .dp-list-row { padding: 14px; border-bottom: 1px solid var(--sand); display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14.5px; }
+  .dp-list-row:last-child { border-bottom: 0; }
+  .dp-banner-preview { background: var(--deep); border-radius: var(--radius-card); padding: 12px; text-align: center; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="pro-page">
+  <nav class="pro-sidebar" aria-label="Navigation Eni’ol">
+    <p class="pro-sidebar__logo">Eni’ol</p>
+    <a class="pro-sidebar__item" href="index.html">☀ Aujourd’hui</a>
+    <a class="pro-sidebar__item" href="demandes.html">✉ Demandes <span class="pro-sidebar__badge" data-badge="demandes" hidden></span></a>
+    <a class="pro-sidebar__item" href="agenda.html">▦ Agenda</a>
+    <a class="pro-sidebar__item" href="clientes.html">♡ Clientes</a>
+    <a class="pro-sidebar__item" href="prestations.html">✂ Prestations</a>
+    <a class="pro-sidebar__item is-active" href="disponibilites.html">◷ Disponibilités</a>
+    <a class="pro-sidebar__item" href="encaissements.html">€ Encaissements</a>
+    <a class="pro-sidebar__item" href="reglages.html">⚙ Réglages</a>
+  </nav>
+  <main class="pro-page__main">
+    <h1 class="page-title">Disponibilités</h1>
+    <div id="dp-root"></div>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Navigation Eni’ol" style="position:fixed; left:0; right:0; bottom:0; z-index:10;">
+  <a class="bottom-nav__item" href="index.html"><span class="bottom-nav__icon">☀</span><span class="bottom-nav__label">Aujourd’hui</span></a>
+  <a class="bottom-nav__item" href="demandes.html"><span class="bottom-nav__icon">✉</span><span class="bottom-nav__badge" data-badge="demandes" hidden></span><span class="bottom-nav__label">Demandes</span></a>
+  <a class="bottom-nav__item" href="agenda.html"><span class="bottom-nav__icon">▦</span><span class="bottom-nav__label">Agenda</span></a>
+  <a class="bottom-nav__item" href="clientes.html"><span class="bottom-nav__icon">♡</span><span class="bottom-nav__label">Clientes</span></a>
+  <a class="bottom-nav__item is-active" href="reglages.html"><span class="bottom-nav__icon">⋯</span><span class="bottom-nav__label">Plus</span></a>
+</nav>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/dates.js"></script>
+<script src="../assets/js/travel.js"></script>
+<script src="../assets/js/availability.js"></script>
+<script src="../assets/js/status.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/strings.js"></script>
+<script src="../assets/js/pro/nav-badge.js"></script>
+<script src="../assets/js/pro/disponibilites.js"></script>
+<script src="../assets/js/demo-bar.js"></script>
+</body>
+</html>

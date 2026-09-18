@@ -1,0 +1,346 @@
+<!doctype html>
+<!--
+  ma-reservation.html — batch B20. Source: PUB P10, read in full — 3
+  rendered states (A "Acceptée — arrhes à envoyer", B "Confirmée", C
+  "Nouveau créneau proposé") plus the "AUTRES STATUTS · MÊME GABARIT" text
+  panel covering En attente / Terminée / Refusée / Expirée / Annulée,
+  which describes each in prose rather than drawing it — those five are
+  built from that prose plus status.js/strings.js, sharing P10's own
+  layout shell (badge, h1, body copy, one info card, action buttons).
+
+  Driven entirely by store.js/status.js: reads the booking named in
+  ?ref=…, renders whichever of the 10 statuses it's actually in, and
+  every action button calls a real status.js transition — reloading the
+  page (or opening it in another tab) shows the change immediately,
+  same "shared state via localStorage" trick as the rest of the demo.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ma réservation — Eni’ol</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/motion.css">
+<link rel="stylesheet" href="assets/css/public-motion-off.css">
+<script src="assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; }
+  .col { max-width: 480px; margin: 0 auto; }
+  /* Fixed (not sticky) so it stays put while the (sometimes long — recap,
+     prep checklist) content below scrolls, per client request — fixed
+     can't ever end up moving with the page the way sticky did, since it
+     isn't tied to which ancestor happens to be the scrolling one. No
+     artboard draws a way back to the homepage from here — the ✕ is the
+     added affordance, alongside the logo, which already links there too.
+     `main` gets matching top padding so content doesn't start underneath it. */
+  header.site {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 2; background: var(--ground);
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; border-bottom: 1px solid var(--rule);
+  }
+  header.site .logo { font-family: var(--font-display); font-size: 20px; color: var(--ink); text-decoration: none; }
+  header.site .ref { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); }
+  header.site .close {
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; margin: -12px -14px -12px 0;
+    font-size: 18px; color: var(--ink-2); background: none; border: 0; cursor: pointer;
+  }
+  header.site .close:hover { color: var(--ink); }
+
+  /* header.site's own rendered height (53px) + its normal 22px top
+     padding, now that the header is position:fixed and no longer
+     reserves that space in the document flow itself. */
+  main { padding: 75px 20px 40px; }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-pill);
+    padding: 6px 12px; font-size: 13px; font-weight: 500; margin-bottom: 14px;
+  }
+  .status-badge--ok { background: var(--state-ok-bg); color: var(--state-ok-ink); }
+  .status-badge--warn { background: var(--state-warn-bg); color: var(--state-warn-ink); }
+  .status-badge--danger { background: var(--state-danger-bg); color: var(--state-danger-ink); }
+  .status-badge--muted { background: var(--sand); color: var(--ink-body); }
+
+  main h1 { font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.12; margin: 0 0 10px; }
+  main > p.lede { margin: 0 0 20px; font-size: 15.5px; line-height: 1.55; color: var(--ink-body); }
+
+  .tracker-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .tracker-row { display: flex; gap: 10px; align-items: center; font-size: 14.5px; margin-bottom: 11px; }
+  .tracker-row:last-child { margin-bottom: 0; }
+  .tracker-row .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .tracker-row.is-done .dot { background: var(--state-ok-ink); color: var(--surface); }
+  .tracker-row.is-current .dot { background: var(--action); color: var(--surface); }
+  .tracker-row.is-todo { color: var(--ink-body); }
+  .tracker-row.is-todo .dot { border: 1px solid var(--slot-unavailable-border); color: var(--ink-2); }
+
+  .amount-card { background: var(--sand); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .amount-card__label { margin: 0 0 6px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--action); }
+  .amount-card__amount { margin: 0 0 4px; font-family: var(--font-mono); font-size: 26px; }
+  .amount-card__desc { margin: 0 0 12px; font-size: 14.5px; color: var(--chip-ink); }
+  .amount-card__how { background: var(--surface); border-radius: 10px; padding: 12px; font-size: 14px; color: var(--chip-ink); }
+  .amount-card__how p { margin: 0; }
+  .amount-card__how p.title { font-weight: 600; margin-bottom: 6px; }
+  .amount-card__how p.hint { margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
+  .amount-card__note { margin: 12px 0 0; font-size: 13px; color: var(--ink-body); }
+
+  .info-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+  .info-card__row { padding: 14px; border-bottom: 1px solid var(--sand); }
+  .info-card__row:last-child { border-bottom: 0; }
+  .info-card__label { margin: 0; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--ink-3); }
+  .info-card__value { margin: 3px 0 0; font-weight: 600; font-size: 15.5px; }
+  .info-card__meta { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-2); }
+
+  .prep-card { background: var(--sand); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .prep-card__title { margin: 0 0 4px; font-weight: 600; font-size: 15.5px; }
+  .prep-card__eyebrow { margin: 0 0 12px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--action); }
+  .prep-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; }
+  .prep-card li { display: flex; gap: 10px; align-items: center; }
+  .prep-card strong { font-family: var(--font-mono); font-size: 12px; }
+  .prep-check {
+    width: 20px; height: 20px; border: 1px solid var(--ink); border-radius: 5px; flex: none;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; background: none; color: transparent; cursor: pointer;
+  }
+  .prep-check.is-checked { background: var(--action); border-color: var(--action); color: var(--surface); }
+
+  .proposal-quote { border-left: 2px solid var(--rule); padding-left: 12px; margin-bottom: 16px; }
+  .proposal-quote p { margin: 0; font-size: 14.5px; color: var(--ink-body); font-style: italic; }
+  .proposal-compare { display: flex; gap: 10px; margin-bottom: 14px; }
+  .proposal-compare > div { flex: 1; border-radius: 12px; padding: 12px; text-align: center; }
+  .proposal-compare .is-old { border: 1px solid var(--rule); background: var(--surface); }
+  .proposal-compare .is-old p:first-child { color: var(--ink-3); }
+  .proposal-compare .is-old p:last-child { font-family: var(--font-mono); font-size: 15px; text-decoration: line-through; color: var(--ink-3); }
+  .proposal-compare .is-new { border: 2px solid var(--action); background: var(--surface); }
+  .proposal-compare .is-new p:first-child { color: var(--action); }
+  .proposal-compare .is-new p:last-child { font-family: var(--font-mono); font-size: 15px; }
+  .proposal-compare p:first-child { margin: 0; font-family: var(--font-mono); font-size: 10.5px; }
+  .proposal-compare p:last-child { margin: 4px 0 0; }
+  .proposal-meta { margin: 0 0 14px; font-size: 13.5px; color: var(--ink-2); }
+
+  .action-list { display: flex; flex-direction: column; gap: 10px; }
+  .action-row { display: flex; gap: 10px; }
+  .action-row .btn { flex: 1; }
+  .btn--link-destructive { color: var(--state-danger-ink); background: none; border: 0; padding: 14px; text-decoration: underline; text-underline-offset: 4px; font: 500 14px/1 var(--font-ui); cursor: pointer; }
+  .btn--link { color: var(--ink); background: none; border: 0; padding: 14px; text-align: center; font: 500 15px/1 var(--font-ui); cursor: pointer; }
+  .cancel-note { margin: 0; font-size: 13px; color: var(--ink-2); }
+
+  .not-found { padding: 60px 20px; text-align: center; }
+  .not-found h1 { font-family: var(--font-display); font-size: 26px; margin: 0 0 10px; }
+  .not-found p { font-size: 15px; color: var(--ink-body); }
+
+  @media (min-width: 900px) {
+    header.site { padding: 14px max(20px, calc((100% - 480px) / 2 + 20px)); }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <a class="logo" href="index.html" data-nav="back">Eni’ol</a>
+  <span class="ref" id="ref-code"></span>
+  <button type="button" class="close" id="btn-close" aria-label="Fermer et revenir à l’accueil">✕</button>
+</header>
+
+<main class="col" id="main"><!-- rendered from store.js --></main>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/strings.js"></script>
+<script src="assets/js/dates.js"></script>
+<script src="assets/js/travel.js"></script>
+<script src="assets/js/availability.js"></script>
+<script src="assets/js/status.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/demo-bar.js"></script>
+<script>
+(function () {
+  var S = window.ENIOL_STORE, D = window.ENIOL_DATES, ST = window.ENIOL_STATUS, M = window.ENIOL_MOTION;
+  var IG_DM = "https://ig.me/m/pose.de.perruques";
+  var ref = new URLSearchParams(location.search).get("ref");
+  var main = document.getElementById("main");
+  document.getElementById("btn-close").addEventListener("click", function () { M.back("index.html"); });
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]; }); }
+  function svcOf(b) { return S.service(b.serviceId); }
+  function clientOf(b) { return S.client(b.clienteId); }
+  function durationLabel(min) { var h = Math.floor(min / 60), m = min % 60; return h ? (h + " h" + (m ? " " + m : "")) : (m + " min"); }
+  function timeCourt(iso) { return D.formatDateShort(D.parseLocal(iso.slice(0, 10))) + " " + iso.slice(11, 16); }
+
+  function render() {
+    var b = S.bookingByRef(ref);
+    if (!b) {
+      main.innerHTML = "<div class=\"not-found\"><h1>Demande introuvable</h1><p>Cette référence ne correspond à aucune demande. Vérifiez le lien reçu par e-mail, ou <a href=\"index.html\">retournez à l’accueil</a>.</p></div>";
+      document.getElementById("ref-code").textContent = "";
+      return;
+    }
+    document.getElementById("ref-code").textContent = b.ref;
+    var html = { en_attente: viewEnAttente, nouveau_creneau_propose: viewPropose, acceptee_arrhes_attendues: viewArrhes,
+      confirmee: viewConfirmee, terminee: viewTerminee, refusee: viewRefusee, expiree: viewExpiree,
+      annulee_cliente: viewAnnulee, annulee_pro: viewAnnulee,
+      // "absente" has no artboard and isn't in P10's "AUTRES STATUTS" text
+      // panel either (it's set from the pro side, after the appointment
+      // time has passed) — closest of the drawn/described states from the
+      // client's own point of view is "terminée" (the appointment is over).
+      absente: viewTerminee }[b.statut];
+    main.innerHTML = html ? html(b) : "";
+    wire(b);
+  }
+
+  function badge(cls, text) { return "<span class=\"status-badge status-badge--" + cls + "\">" + text + "</span>"; }
+  function prepList(b) {
+    var items = [
+      ["J-2", "Laver et démêler mes cheveux"],
+      ["LA VEILLE", "Sortir ma perruque et mes produits"],
+      ["LE JOUR J", "Une chaise, une prise, de la lumière"]
+    ];
+    return "<div class=\"prep-card\"><p class=\"prep-card__title\">Pour bien préparer la séance</p>" +
+      "<p class=\"prep-card__eyebrow\">EXEMPLES — À VALIDER</p><ul>" +
+      items.map(function (it, i) {
+        return "<li><button type=\"button\" class=\"prep-check\" data-prep=\"" + i + "\" aria-label=\"Marquer comme fait\">✓</button>" +
+          "<span><strong>" + it[0] + "</strong> — " + it[1] + "</span></li>";
+      }).join("") + "</ul></div>";
+  }
+
+  // ---- A · Acceptée — arrhes à envoyer ----
+  function viewArrhes(b) {
+    var svc = svcOf(b);
+    return badge("ok", "✓ Acceptée") +
+      (b.debut
+        ? "<h1>C’est d’accord pour " + D.formatDateLong(D.parseLocal(b.debut.slice(0, 10))) + " à " + b.debut.slice(11, 16) + " ♡</h1>"
+        : "<h1>C’est d’accord ♡</h1>") +
+      "<p class=\"lede\">Il reste une étape" + D.NBSP + ": m’envoyer les arrhes pour bloquer le créneau.</p>" +
+      "<div class=\"tracker-card\">" +
+        trackerRow("done", "Demande reçue") + trackerRow("done", "Validée par Eni’ol") +
+        trackerRow(b.arrhesDeclareesLe ? "done" : "current", b.arrhesDeclareesLe ? "Arrhes déclarées" : "Arrhes à envoyer", true) +
+        trackerRow("todo", "Confirmée") +
+      "</div>" +
+      "<div class=\"amount-card\"><p class=\"amount-card__label\">ARRHES</p>" +
+        "<p class=\"amount-card__amount\">" + D.formatPrice(b.arrhesAttenduesEuros) + "</p>" +
+        (b.arrhesDateLimite
+          ? "<p class=\"amount-card__desc\">à m’envoyer avant le <strong>" + D.formatDateLong(D.parseLocal(b.arrhesDateLimite.slice(0, 10))) + " " + b.arrhesDateLimite.slice(11, 16) + "</strong> pour bloquer le créneau.</p>"
+          : "<p class=\"amount-card__desc\">à m’envoyer pour lancer la fabrication.</p>") +
+        "<div class=\"amount-card__how\"><p class=\"title\">Comment me les envoyer</p>" +
+          "<p>Par Lydia, Wero ou virement au <span style=\"font-family:var(--font-mono);\">" + D.formatPhoneFr(S.get().settings.telephone) + "</span> — précisez votre prénom en commentaire. Envoyez-moi la capture en DM si vous voulez être sûre.</p>" +
+          "<p class=\"hint\">Aucun paiement ne se fait sur ce site.</p></div>" +
+        "<p class=\"amount-card__note\">Les arrhes viennent en déduction" + D.NBSP + ": il restera <strong>" + D.formatPrice((b.prixEuros || 0) - b.arrhesAttenduesEuros) + "</strong> sur place, en espèces ou par carte.</p>" +
+      "</div>" +
+      "<div class=\"action-list\">" +
+        (b.arrhesDeclareesLe
+          ? "<p class=\"cancel-note\">✓ Vous avez indiqué avoir envoyé les arrhes — je confirme dès réception.</p>"
+          : "<button type=\"button\" class=\"btn btn--primary\" data-action=\"declarerArrhes\">J’ai envoyé les arrhes</button>") +
+        "<a class=\"btn btn--secondary\" href=\"" + IG_DM + "\">Écrire sur Instagram</a>" +
+        "<button type=\"button\" class=\"btn--link-destructive\" data-action=\"annulerCliente\">Annuler ce rendez-vous</button>" +
+      "</div>";
+  }
+  function trackerRow(state, label, strong) {
+    var icon = state === "done" ? "✓" : (state === "current" ? "◔" : "◌");
+    return "<div class=\"tracker-row is-" + state + "\"><span class=\"dot\">" + icon + "</span>" + (strong ? "<strong>" + label + "</strong>" : "<span>" + label + "</span>") + "</div>";
+  }
+
+  // ---- B · Confirmée ----
+  function viewConfirmee(b) {
+    var svc = svcOf(b);
+    var days = b.debut ? Math.round((D.parseLocal(b.debut) - S.now()) / 86400000) : null;
+    var finGratuite = ST.finAnnulationGratuite(S.get(), b);
+    var arrhes = b.arrhesAttenduesEuros;
+    var reste = arrhes != null ? (b.prixEuros || 0) - arrhes : b.prixEuros;
+    return badge("ok", "✓ Confirmée") +
+      (days != null ? "<h1>Votre séance est dans " + days + " jour" + (days > 1 ? "s" : "") + "</h1>" : "<h1>C’est confirmé ♡</h1>") +
+      (b.debut
+        ? "<p class=\"lede\">J’arrive vers <strong>" + b.debut.slice(11, 16) + " (± 15 min)</strong>, fin prévue vers " + (b.fin ? b.fin.slice(11, 16) : "—") + ".</p>"
+        : "<p class=\"lede\">On fixe la date ensemble dès que votre perruque est prête.</p>") +
+      "<div class=\"info-card\">" +
+        (b.debut
+          ? "<div class=\"info-card__row\"><p class=\"info-card__label\">QUAND</p><p class=\"info-card__value\">" + D.formatDateLong(D.parseLocal(b.debut.slice(0, 10))) + " · " + b.debut.slice(11, 16) + "</p></div>"
+          : (b.projet && b.projet.pourLe
+            ? "<div class=\"info-card__row\"><p class=\"info-card__label\">POUR LE</p><p class=\"info-card__value\">" + D.formatDateLong(D.parseLocal(b.projet.pourLe)) + "</p></div>"
+            : "")) +
+        infoWhere(b) +
+        "<div class=\"info-card__row\"><p class=\"info-card__label\">PAIEMENT</p>" +
+          "<p class=\"info-card__value\">" + (arrhes != null ? "Arrhes " + D.formatPrice(arrhes) + " reçues ✓" : "Aucun acompte") + "</p>" +
+          "<p class=\"info-card__meta\">Reste " + D.formatPrice(reste) + " sur place — espèces ou carte</p></div>" +
+      "</div>" +
+      prepList(b) +
+      "<div class=\"action-row\"><a class=\"btn btn--secondary\" href=\"" + IG_DM + "\">Modifier</a>" +
+        "<button type=\"button\" class=\"btn btn--destructive\" data-action=\"annulerCliente\">Annuler</button></div>" +
+      (finGratuite
+        ? "<p class=\"cancel-note\">Annulation gratuite jusqu’au " + D.formatDateLong(D.parseLocal(finGratuite.slice(0, 10))) + " " + finGratuite.slice(11, 16) + ". Après, les arrhes restent acquises.</p>"
+        : "");
+  }
+  function infoWhere(b) {
+    if (b.lieu === "sans_deplacement" || !b.adresseId) return "";
+    var a = S.address(b.adresseId);
+    return "<div class=\"info-card__row\"><p class=\"info-card__label\">OÙ</p><p class=\"info-card__value\">Chez vous — " + esc(a ? a.zone : "") + "</p>" +
+      (a ? "<p class=\"info-card__meta\">" + esc(a.ligne1 + (a.complement ? " · " + a.complement : "")) + "</p>" : "") + "</div>";
+  }
+
+  // ---- C · Nouveau créneau proposé ----
+  function viewPropose(b) {
+    var ci = b.creneauInitial || { debut: b.debut, fin: b.fin };
+    return badge("warn", "◔ Nouveau créneau proposé") +
+      "<h1 style=\"font-size:26px;\">Je vous propose un autre créneau</h1>" +
+      (b.messagePro ? "<div class=\"proposal-quote\"><p>«" + D.NBSP + esc(b.messagePro) + D.NBSP + "»</p></div>" : "") +
+      "<div class=\"proposal-compare\">" +
+        "<div class=\"is-old\"><p>DEMANDÉ</p><p>" + timeCourt(ci.debut) + "</p></div>" +
+        "<div class=\"is-new\"><p>PROPOSÉ</p><p>" + timeCourt(b.debut) + "</p></div>" +
+      "</div>" +
+      "<p class=\"proposal-meta\">Fin prévue vers " + (b.fin ? b.fin.slice(11, 16) : "—") + " · à répondre avant " + timeCourt(b.repondreAvant) + ".</p>" +
+      "<div class=\"action-list\">" +
+        "<button type=\"button\" class=\"btn btn--primary\" data-action=\"accepterProposition\">Accepter " + b.debut.slice(11, 16) + "</button>" +
+        "<button type=\"button\" class=\"btn btn--secondary\" data-action=\"refuserProposition\">Refuser et chercher un autre créneau</button>" +
+      "</div>";
+  }
+
+  // ---- Prose-only statuses (P10's "AUTRES STATUTS · MÊME GABARIT" panel) ----
+  function viewEnAttente(b) {
+    return badge("warn", "◔ En attente") + "<h1>J’ai bien reçu votre demande</h1>" +
+      "<p class=\"lede\">Réponse avant " + timeCourt(b.repondreAvant) + D.NBSP + "· il reste " + D.formatExpiry(D.parseLocal(b.repondreAvant), S.now()) + ".</p>" +
+      "<div class=\"action-list\"><button type=\"button\" class=\"btn--link-destructive\" data-action=\"annulerCliente\">Annuler ma demande</button></div>";
+  }
+  function viewTerminee(b) {
+    return badge("ok", "✓ Terminée") + "<h1>Merci pour votre confiance ♡</h1>" +
+      "<div class=\"info-card\">" +
+        "<div class=\"info-card__row\"><p class=\"info-card__label\">PRESTATION</p><p class=\"info-card__value\">" + esc(svcOf(b).nom) + "</p></div>" +
+        (b.debut ? "<div class=\"info-card__row\"><p class=\"info-card__label\">LE</p><p class=\"info-card__value\">" + D.formatDateLong(D.parseLocal(b.debut.slice(0, 10))) + "</p></div>" : "") +
+      "</div>" +
+      "<div class=\"action-list\"><a class=\"btn btn--primary\" href=\"prestations.html\">Reprendre rendez-vous</a>" +
+      "<p class=\"cancel-note\" style=\"text-align:center;\">Vos avis arrivent bientôt ♡ — en attendant, une capture sur Instagram me touche toujours.</p></div>";
+  }
+  function viewRefusee(b) {
+    return badge("danger", "✕ Non disponible") + "<h1>Je ne peux pas ce jour-là, désolée</h1>" +
+      (b.messagePro ? "<p class=\"lede\">" + esc(b.messagePro) + "</p>" : "") +
+      "<div class=\"action-list\"><a class=\"btn btn--primary\" href=\"reserver.html?service=" + svcOf(b).id + "\">Choisir un autre créneau</a>" +
+      "<a class=\"btn btn--secondary\" href=\"" + IG_DM + "\">Écrivez-moi sur Instagram</a></div>";
+  }
+  function viewExpiree(b) {
+    return badge("muted", "◌ Expirée") + "<h1>Cette demande a expiré</h1>" +
+      "<p class=\"lede\">Je n’ai pas répondu à temps, pardon. Le créneau est de nouveau libre.</p>" +
+      "<div class=\"action-list\"><a class=\"btn btn--primary\" href=\"reserver.html?service=" + svcOf(b).id + "\">Refaire ma demande</a></div>";
+  }
+  function viewAnnulee(b) {
+    var par = b.annulation && b.annulation.par === "pro" ? "par Eni’ol" : "par vous";
+    var le = b.annulation ? D.formatDateLong(D.parseLocal(b.annulation.le.slice(0, 10))) : "";
+    return badge("muted", "◌ Annulée") + "<h1>Demande annulée</h1>" +
+      "<p class=\"lede\">Annulée " + par + (le ? ", le " + le : "") + ".</p>" +
+      "<div class=\"action-list\"><a class=\"btn btn--primary\" href=\"reserver.html?service=" + svcOf(b).id + "\">Réserver à nouveau</a></div>";
+  }
+
+  function wire(b) {
+    main.querySelectorAll("[data-action]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var action = btn.getAttribute("data-action");
+        if ((action === "annulerCliente") && !window.confirm("Annuler ce rendez-vous ?")) return;
+        S.act(b.id, action, {});
+        render();
+      });
+    });
+    main.querySelectorAll("[data-prep]").forEach(function (btn) {
+      btn.addEventListener("click", function () { btn.classList.toggle("is-checked"); });
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

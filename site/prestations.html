@@ -1,0 +1,247 @@
+<!doctype html>
+<!--
+  prestations.html — batch B11, rebuilt against a fresh line-by-line read
+  of PUB P02 after the client review ("isn't completed like in the design").
+
+  What P02 actually draws, and this page now follows:
+  - Header: ← · Eni’ol · a small "Réserver" pill, spread with
+    space-between (not a left-aligned logo + full-size button).
+  - Order: the lace frontale card first, as the one featured card — 3:2
+    photo, "COMPRIS" list, "Arrhes 20 €" chip and the filled primary
+    button. Then compact cards (no photo, outline button): Pose, then
+    Fabrication, then "+ 4 autres prestations ↓", which is a real control
+    here: it drops the remaining four cards down.
+  - Chips are P02's own small ones (5px 10px, 12.5px / mono 11.5px), in
+    P02's order — the ✦ Projet chip comes first on the project card.
+  - Notice wording "Préavis 72 h / 48 h / 3 semaines"; fabrication "dès 150 €".
+  - The "Vous hésitez entre deux prestations ?" footer is NOT in P02 (it's
+    a P13 home-page line) — removed.
+  - No desktop artboard exists for this page: at ≥ 900 px the same mobile
+    column is centered at 680 px (PDC §3's prose column), nothing invented.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mes prestations — Eni’ol</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/motion.css">
+<link rel="stylesheet" href="assets/css/public-motion-off.css">
+<script src="assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; } /* the design canvas's leading */
+  .col { max-width: 680px; margin: 0 auto; }
+
+  /* Sticky so it can't end up scrolling away with the page. */
+  header.site {
+    position: sticky; top: 0; z-index: 20; background: var(--ground);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--rule);
+  }
+  header.site .back {
+    font-size: 20px; color: var(--ink); text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; margin: -12px -14px;
+  }
+  header.site .logo { font-family: var(--font-display); font-size: 20px; }
+  .header-cta.btn { font-size: 13px; padding: 11px 14px; min-height: 0; box-shadow: none; position: relative; }
+  .header-cta.btn::after { content: ""; position: absolute; inset: -4px -2px; }
+
+  .intro { padding: 24px 20px 8px; }
+  .intro h1 { font-size: 34px; line-height: 1.05; margin: 0 0 10px; }
+  .intro p { margin: 0 0 14px; font-size: 16px; color: var(--ink-body); }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .filters button {
+    border-radius: var(--radius-pill); padding: 9px 14px; font-size: 13px;
+    border: 1px solid var(--ink); background: none; color: var(--ink); cursor: pointer;
+    transition: background-color 200ms, color 200ms, border-color 200ms;
+  }
+  .filters button[aria-pressed="true"] { background: var(--action); border-color: var(--action); color: var(--surface); font-weight: 500; }
+  .prix-provisoires { margin: 8px 0 0; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--ink-3); }
+
+  .list { padding: 8px 20px 24px; }
+  /* Each card sits in a drop-down wrapper so filtering and "+ 4 autres"
+     close and open cards smoothly; the 14px gap lives inside the wrapper
+     so a closed card takes no space at all. */
+  .card-slot { padding-bottom: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card); overflow: hidden; }
+  .card .photo {
+    aspect-ratio: 3/2; display: flex; align-items: center; justify-content: center;
+    background: repeating-linear-gradient(135deg, #E8DCCC 0 8px, #E1D3C0 8px 16px);
+  }
+  .card .photo span { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--ink-2); text-align: center; padding: 0 12px; }
+  .card .body { padding: 16px; }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .card h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.15; }
+  .card .price { font-family: var(--font-mono); font-size: 15px; white-space: nowrap; }
+  .card--projet .price { font-size: 14px; }
+  .card .desc { margin: 8px 0 0; font-size: 14.5px; color: var(--ink-body); }
+  .card--featured .desc { line-height: 1.55; }
+  .card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 14px; }
+  .card--featured .tags, .card--projet .tags { margin-bottom: 12px; }
+  .tag { border-radius: var(--radius-pill); padding: 5px 10px; font-size: 12.5px; }
+  .tag--travel { background: var(--sand); }
+  .tag--projet { background: var(--state-project-bg); color: var(--state-project-ink); }
+  .tag--mono { border: 1px solid var(--rule); font-family: var(--font-mono); font-size: 11.5px; }
+  .card .compris-label { margin: 0 0 4px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--action); }
+  .card .compris { margin: 0 0 14px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 14px; color: var(--ink-body); }
+  .card .compris li { display: flex; gap: 8px; }
+  .card .compris .heart { color: var(--heart); }
+  .card .devis-box { margin: 0 0 12px; font-size: 13.5px; color: var(--ink-2); background: var(--ground); border-radius: 10px; padding: 10px; }
+  .card .cta { display: flex; width: 100%; font-size: 15px; }
+  .card .cta.btn--primary { padding: 16px; }
+  .card .cta.btn--secondary { padding: 15px; }
+
+  .more {
+    display: block; width: 100%; margin: 0; padding: 12px 0; min-height: 44px;
+    text-align: center; font-size: 14px; color: var(--ink-2);
+    background: none; border: 0; cursor: pointer;
+  }
+  .more:hover { color: var(--ink); }
+
+  @media (min-width: 900px) {
+    header.site { padding: 14px max(20px, calc((100% - 680px) / 2 + 20px)); }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <a class="back" href="index.html" data-nav="back" aria-label="Retour à l’accueil">←</a>
+  <a class="logo" href="index.html" data-nav="back">Eni’ol</a>
+  <a class="btn btn--primary header-cta" href="reserver.html">Réserver</a>
+</header>
+
+<div class="intro col">
+  <h1>Mes prestations</h1>
+  <p>Sept prestations, et une seule règle : je viens à vous quand c’est possible.</p>
+  <div class="filters" role="group" aria-label="Filtrer les prestations">
+    <button type="button" data-filter="toutes" aria-pressed="true">Toutes</button>
+    <button type="button" data-filter="domicile_cliente" aria-pressed="false">À domicile</button>
+    <button type="button" data-filter="sans_deplacement" aria-pressed="false">Sans déplacement</button>
+  </div>
+  <p class="prix-provisoires">PRIX PROVISOIRES</p>
+</div>
+
+<div class="list col">
+  <div id="list" aria-live="polite"><!-- rendered from data.js --></div>
+  <div class="collapse is-open" id="more-slot"><div class="collapse__inner">
+    <button type="button" class="more" id="more-btn"></button>
+  </div></div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/strings.js"></script>
+<script src="assets/js/dates.js"></script>
+<script src="assets/js/travel.js"></script>
+<script src="assets/js/availability.js"></script>
+<script src="assets/js/status.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/demo-bar.js"></script>
+<script>
+(function () {
+  var D = window.ENIOL_DATES, M = window.ENIOL_MOTION;
+  var FEATURED = "lace-frontale";
+  var FIRST_SHOWN = 3; // P02 draws three cards, then "+ 4 autres prestations ↓"
+  // P02's order: the featured lace frontale, then Pose, then Fabrication,
+  // then the four others in their usual order.
+  var LEAD = ["lace-frontale", "pose", "fabrication"];
+  var services = window.ENIOL_STORE.get().services
+    .filter(function (s) { return s.visible !== false; })
+    .sort(function (a, b) {
+      var ia = LEAD.indexOf(a.id), ib = LEAD.indexOf(b.id);
+      if (ia < 0) ia = 99; if (ib < 0) ib = 99;
+      return ia !== ib ? ia - ib : a.ordre - b.ordre;
+    });
+  var TRAVEL_BADGE = { domicile_cliente: "🚶‍♀️ Je me déplace", sans_deplacement: "🏠 Sans déplacement", au_choix: "↔ Au choix" };
+
+  function durationLabel(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    return h ? (h + " h" + (m ? " " + m : "")) : (m + " min");
+  }
+  function preavisLabel(hours) {
+    if (hours % 24 !== 0 || hours <= 72) return hours + " h";
+    var d = hours / 24;
+    return (d > 7 && d % 7 === 0) ? (d / 7) + " semaines" : d + " jours";
+  }
+
+  function cardHtml(svc) {
+    var featured = svc.id === FEATURED, projet = svc.modeReservation === "projet";
+    var tags = [];
+    if (projet) tags.push("<span class=\"tag tag--projet\">✦ Projet · sur devis</span>");
+    tags.push("<span class=\"tag tag--travel\">" + TRAVEL_BADGE[svc.lieu] + "</span>");
+    if (svc.dureeMin && !projet) tags.push("<span class=\"tag tag--mono\">" + durationLabel(svc.dureeMin) + "</span>");
+    tags.push("<span class=\"tag tag--mono\">Préavis " + preavisLabel(svc.delaiMinimumHeures) + "</span>");
+    // Only the featured card carries the arrhes chip and "COMPRIS" (P02:
+    // the Pose card has 20 € of arrhes too, but draws no chip for it).
+    if (featured && svc.arrhes && svc.arrhes.type === "montant") tags.push("<span class=\"tag tag--mono\">Arrhes " + D.formatPrice(svc.arrhes.valeur) + "</span>");
+
+    var compris = featured && svc.compris
+      ? "<p class=\"compris-label\">COMPRIS</p><ul class=\"compris\">" +
+        svc.compris.map(function (c) { return "<li><span class=\"heart\" aria-hidden=\"true\">♡</span>" + c + "</li>"; }).join("") + "</ul>"
+      : "";
+    var devisBox = projet
+      ? "<p class=\"devis-box\">Vous recevez un devis sous " + svc.devisSousHeures + " h. Arrhes : " + svc.arrhes.valeur + " % à la commande des matières.</p>"
+      : "";
+    var cta = "<a class=\"btn " + (featured ? "btn--primary" : "btn--secondary") + " cta\" href=\"reserver.html?service=" + svc.id + "\">" +
+      (projet ? "Démarrer mon projet" : "Réserver cette prestation") + "</a>";
+
+    return "<div class=\"collapse card-wrap\" data-id=\"" + svc.id + "\" data-lieu=\"" + svc.lieu + "\"><div class=\"collapse__inner\"><div class=\"card-slot\">" +
+      "<article class=\"card" + (featured ? " card--featured" : "") + (projet ? " card--projet" : "") + "\">" +
+        (featured ? "<div class=\"photo\"><span>PHOTO 3:2 — POSE LACE FRONTALE</span></div>" : "") +
+        "<div class=\"body\">" +
+          "<div class=\"top\"><h2>" + svc.nom + "</h2><span class=\"price\">" + D.formatServicePrice(svc) + "</span></div>" +
+          "<p class=\"desc\">" + svc.description + "</p>" +
+          "<div class=\"tags\">" + tags.join("") + "</div>" +
+          compris + devisBox + cta +
+        "</div>" +
+      "</article>" +
+    "</div></div></div>";
+  }
+
+  var list = document.getElementById("list");
+  list.innerHTML = services.map(cardHtml).join("");
+  var wraps = Array.prototype.slice.call(list.children);
+  var moreSlot = document.getElementById("more-slot"), moreBtn = document.getElementById("more-btn");
+  var filter = "toutes", expanded = false;
+
+  function matches(lieu) { return filter === "toutes" || lieu === filter || lieu === "au_choix"; }
+  function apply() {
+    var hidden = 0;
+    wraps.forEach(function (w, i) {
+      var show = matches(w.getAttribute("data-lieu")) && (filter !== "toutes" || expanded || i < FIRST_SHOWN);
+      if (filter === "toutes" && !expanded && i >= FIRST_SHOWN) hidden++;
+      M.setOpen(w, show);
+    });
+    moreBtn.textContent = "+ " + hidden + " autre" + (hidden > 1 ? "s" : "") + " prestation" + (hidden > 1 ? "s" : "") + " ↓";
+    M.setOpen(moreSlot, hidden > 0);
+  }
+
+  // First paint: no animation, just the right cards open.
+  wraps.forEach(function (w) { w.style.transition = "none"; });
+  moreSlot.style.transition = "none";
+  apply();
+  void list.offsetHeight;
+  wraps.forEach(function (w) { w.style.transition = ""; });
+  moreSlot.style.transition = "";
+
+  moreBtn.addEventListener("click", function () {
+    expanded = true;
+    apply();
+    var firstNew = wraps[FIRST_SHOWN] && wraps[FIRST_SHOWN].querySelector("a.cta");
+    if (firstNew) window.setTimeout(function () { firstNew.focus({ preventScroll: true }); }, 50);
+  });
+  document.querySelectorAll(".filters button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".filters button").forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+      filter = btn.getAttribute("data-filter");
+      apply();
+    });
+  });
+})();
+</script>
+</body>
+</html>

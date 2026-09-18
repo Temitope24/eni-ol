@@ -1,0 +1,10 @@
+/*
+  Pro pages: no page-to-page slide. motion.css's own header comment
+  explains the slide was an explicit client request for the PUBLIC booking
+  flow — the espace pro (index → demandes → agenda → …) should just swap
+  pages like a normal navigation when she taps the bottom nav or sidebar,
+  no animation. Loaded after motion.css on every pro/*.html page so this
+  @view-transition (opts the page out on both ends of a same-origin
+  navigation) wins over motion.css's "navigation: auto".
+*/
+@view-transition { navigation: none; }

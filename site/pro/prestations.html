@@ -1,0 +1,105 @@
+<!doctype html>
+<!--
+  pro/prestations.html — batch B30. Source: PRO R08, read in full — only
+  the "Où ?" tab is pixel-drawn. The Infos / Prix & durée / Réservation
+  tabs reuse COMP's field patterns (extrapolated, per CODE-BATCHES.md's own
+  note on this batch). The list screen itself (before opening an editor)
+  has no artboard either — built from the public prestations.html's own
+  card shape, since that's the literal source for what a service "is".
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Prestations — Eni’ol</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/motion.css">
+<link rel="stylesheet" href="../assets/css/pro-motion-off.css">
+<script src="../assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; }
+  .pro-page__main { padding: 18px 20px 100px; max-width: 640px; }
+  @media (min-width: 900px) { .pro-page__main { padding: 26px 32px 40px; max-width: 760px; } }
+
+  .pr-list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .pr-list-head h1 { font-size: 26px; margin: 0; }
+  .pr-list-row { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card); margin-bottom: 10px; }
+  .pr-list-row__meta { flex: 1; min-width: 0; }
+  .pr-list-row__meta p { margin: 0; }
+  .pr-list-row__name { font-weight: 600; font-size: 15px; }
+  .pr-list-row__sub { font-size: 13px; color: var(--ink-2); margin-top: 2px !important; }
+
+  .pr-editor-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+  .pr-editor-header a.back { font-size: 18px; color: var(--ink); text-decoration: none; }
+  .pr-editor-header p { margin: 0; font-size: 15px; font-weight: 600; flex: 1; }
+  .pr-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--rule); margin: 0 20px 18px; overflow-x: auto; }
+  .pr-tabs button { padding: 12px 8px; font-size: 14px; color: var(--ink-2); background: none; border: 0; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+  .pr-tabs button.is-active { color: var(--ink); font-weight: 600; border-bottom-color: var(--action); }
+  .pr-editor-body { padding: 0 20px 60px; max-width: 560px; }
+
+  .pr-field-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .pr-field-row span.label { flex: 1; font-size: 14.5px; }
+  .pr-field-row .field { max-width: 140px; text-align: right; }
+
+  .pr-preview-box { background: var(--ground); border: 1px dashed var(--slot-unavailable-border); border-radius: 14px; padding: 12px; }
+</style>
+</head>
+<body>
+
+<div id="pr-list-view">
+  <div class="pro-page">
+    <nav class="pro-sidebar" aria-label="Navigation Eni’ol">
+      <p class="pro-sidebar__logo">Eni’ol</p>
+      <a class="pro-sidebar__item" href="index.html">☀ Aujourd’hui</a>
+      <a class="pro-sidebar__item" href="demandes.html">✉ Demandes <span class="pro-sidebar__badge" data-badge="demandes" hidden></span></a>
+      <a class="pro-sidebar__item" href="agenda.html">▦ Agenda</a>
+      <a class="pro-sidebar__item" href="clientes.html">♡ Clientes</a>
+      <a class="pro-sidebar__item is-active" href="prestations.html">✂ Prestations</a>
+      <a class="pro-sidebar__item" href="disponibilites.html">◷ Disponibilités</a>
+      <a class="pro-sidebar__item" href="encaissements.html">€ Encaissements</a>
+      <a class="pro-sidebar__item" href="reglages.html">⚙ Réglages</a>
+    </nav>
+    <main class="pro-page__main">
+      <div class="pr-list-head"><h1>Prestations</h1></div>
+      <div id="pr-list"></div>
+    </main>
+  </div>
+  <nav class="bottom-nav" aria-label="Navigation Eni’ol" style="position:fixed; left:0; right:0; bottom:0; z-index:10;">
+    <a class="bottom-nav__item" href="index.html"><span class="bottom-nav__icon">☀</span><span class="bottom-nav__label">Aujourd’hui</span></a>
+    <a class="bottom-nav__item" href="demandes.html"><span class="bottom-nav__icon">✉</span><span class="bottom-nav__badge" data-badge="demandes" hidden></span><span class="bottom-nav__label">Demandes</span></a>
+    <a class="bottom-nav__item" href="agenda.html"><span class="bottom-nav__icon">▦</span><span class="bottom-nav__label">Agenda</span></a>
+    <a class="bottom-nav__item" href="clientes.html"><span class="bottom-nav__icon">♡</span><span class="bottom-nav__label">Clientes</span></a>
+    <a class="bottom-nav__item is-active" href="reglages.html"><span class="bottom-nav__icon">⋯</span><span class="bottom-nav__label">Plus</span></a>
+  </nav>
+</div>
+
+<div id="pr-editor-view" hidden>
+  <header class="pr-editor-header">
+    <a class="back" href="prestations.html" aria-label="Retour">←</a>
+    <p id="pr-editor-title"></p>
+    <button type="button" class="btn btn--primary" id="pr-save" style="padding:11px 16px; min-height:0;">Enregistrer</button>
+  </header>
+  <div class="pr-tabs" id="pr-tabs">
+    <button type="button" data-tab="infos" class="is-active">Infos</button>
+    <button type="button" data-tab="prix">Prix &amp; durée</button>
+    <button type="button" data-tab="ou">Où ?</button>
+    <button type="button" data-tab="reservation">Réservation</button>
+  </div>
+  <div class="pr-editor-body" id="pr-editor-body"></div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/dates.js"></script>
+<script src="../assets/js/travel.js"></script>
+<script src="../assets/js/availability.js"></script>
+<script src="../assets/js/status.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/strings.js"></script>
+<script src="../assets/js/pro/nav-badge.js"></script>
+<script src="../assets/js/pro/prestations.js"></script>
+<script src="../assets/js/demo-bar.js"></script>
+</body>
+</html>

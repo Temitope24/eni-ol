@@ -1,0 +1,194 @@
+<!doctype html>
+<!--
+  pro/index.html — batch B23. Source: PRO R01, read in full — the "Aujourd'hui"
+  dashboard. No desktop artboard exists for R01 itself; the 216px dark sidebar
+  shell below is extrapolated from R12/R13/R14-desktop's identical sidebar
+  (same convention already used for conditions.html/prestations.html's
+  ≥900px layout when no desktop maquette exists), with R01's mobile cards
+  simply reflowing into the wider content column.
+
+  The "＋ Ajouter un RDV" trigger (FAB on mobile, sidebar pill on desktop)
+  only appears on this page and pro/agenda.html — CODE-BATCHES.md's B33 row
+  says the sheet is "opened by the FAB from pro/index.html and
+  pro/agenda.html", so it's deliberately absent from every other pro
+  sidebar (R13/R14-desktop's own sidebars don't draw it either).
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Aujourd’hui — Eni’ol</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/motion.css">
+<link rel="stylesheet" href="../assets/css/pro-motion-off.css">
+<script src="../assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; }
+  .pro-page__main { padding: 18px 20px 84px; max-width: 620px; }
+  @media (min-width: 900px) { .pro-page__main { padding: 26px 32px 40px; max-width: 720px; } }
+
+  .pro-topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .pro-topbar h1 { font-size: 26px; margin: 0; }
+  .pro-topbar__date { margin: 4px 0 0; font-size: 14px; color: var(--ink-2); }
+  .pro-gear {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--sand);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    color: inherit; text-decoration: none; flex: none;
+  }
+  .depart-pill {
+    display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--ink);
+    border-radius: var(--radius-pill); padding: 10px 14px; font-size: 14px; margin-bottom: 16px;
+  }
+
+  .requests-banner {
+    background: var(--state-warn-bg); border-radius: var(--radius-card); padding: 14px;
+    display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit;
+    margin-bottom: 18px;
+  }
+  .requests-banner__count {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--state-warn-ink); color: var(--state-warn-bg);
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14px; flex: none;
+  }
+  .requests-banner__title { margin: 0; font-weight: 600; font-size: 15px; color: #5C380A; }
+  .requests-banner__sub { margin: 2px 0 0; font-size: 13px; color: var(--state-warn-ink); }
+  .requests-banner__chevron { font-size: 16px; color: var(--state-warn-ink); }
+
+  .section-eyebrow { margin: 0 0 8px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--ink-3); }
+
+  .next-rdv-eyebrow { margin: 0 0 8px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--ink-3); }
+  .next-rdv { background: var(--deep); color: var(--ink-on-deep); border-radius: var(--radius-card); padding: 18px; margin-bottom: 18px; }
+  .next-rdv__time { display: flex; align-items: baseline; gap: 10px; }
+  .next-rdv__time strong { font-family: var(--font-mono); font-size: 26px; color: var(--ground); }
+  .next-rdv__time span.end { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2-on-deep); }
+  .next-rdv__date { margin-left: auto; font-size: 12px; background: var(--deep-2); border-radius: var(--radius-pill); padding: 4px 10px; }
+  .next-rdv__name { margin: 12px 0 2px; font-family: var(--font-display); font-size: 19px; }
+  .next-rdv__service { margin: 0 0 12px; font-size: 14.5px; }
+  .next-rdv__addr { margin: 0 0 4px; font-size: 14px; }
+  .next-rdv__travel { margin: 0 0 16px; font-size: 13.5px; color: var(--heart-on-deep); }
+  .next-rdv__actions { display: flex; gap: 10px; }
+  .next-rdv__actions a, .next-rdv__actions span { flex: 1; }
+
+  /* R01's mini day timeline: a dedicated dot+dotted-line rail column on
+     the left (no time labels), cards stacked in a second column on the
+     right — structurally different from agenda.html's fuller R04 version,
+     which has a time gutter and per-row rails instead. */
+  .day-timeline { margin-bottom: 18px; }
+  .day-timeline__eyebrow-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .day-timeline__eyebrow-row a { font-size: 13px; }
+  .day-timeline__body { display: flex; gap: 12px; }
+  .day-timeline__rail { display: flex; flex-direction: column; align-items: center; padding-top: 6px; flex: none; }
+  .day-timeline__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); flex: none; }
+  .day-timeline__dot--pending { width: 10px; height: 10px; border-radius: 50%; border: 2px dashed var(--state-warn-ink); background: none; flex: none; box-sizing: border-box; }
+  .day-timeline__line { flex: 1; width: 0; border-left: 2px dotted var(--ink-3); min-height: 30px; }
+  .day-timeline__cards { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .day-timeline__card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card); padding: 12px; cursor: pointer; }
+  .day-timeline__card--danger { border-style: dashed; border-color: var(--state-warn-ink); }
+  .day-timeline__card-head { display: flex; justify-content: space-between; gap: 8px; }
+  .day-timeline__card-head p { margin: 0; font-family: var(--font-mono); font-size: 14px; }
+  .day-timeline__card-name { margin: 6px 0 0; font-weight: 600; font-size: 15px; }
+  .day-timeline__card-sub { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+  .day-timeline__gap { margin: 0; font-size: 13px; color: var(--ink-2); }
+  .day-timeline__gap--danger { color: var(--state-danger-ink); }
+
+  .stat-grid + .month-banner,
+  .month-banner { margin-top: 10px; }
+  .month-banner { background: var(--sand); border-radius: var(--radius-card); padding: 14px; display: flex; align-items: center; gap: 12px; }
+  .month-banner p { margin: 0; }
+  .month-banner__title { font-size: 14.5px; font-weight: 600; }
+  .month-banner__sub { font-size: 13px; color: var(--ink-body); margin-top: 2px !important; }
+
+  .depart-wrap { margin-bottom: 16px; }
+  .depart-select { border: 1px solid var(--ink); background: none; border-radius: var(--radius-pill); padding: 10px 14px; font-size: 14px; font-family: var(--font-ui); color: var(--ink); cursor: pointer; }
+  .depart-select strong { font-weight: 600; }
+  .depart-menu-item { display: block; width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px; border: 0; background: none; font-size: 14px; color: var(--ink); cursor: pointer; }
+  .depart-menu-item:hover { background: var(--sand); }
+</style>
+</head>
+<body>
+
+<div class="pro-page">
+  <nav class="pro-sidebar" aria-label="Navigation Eni’ol">
+    <p class="pro-sidebar__logo">Eni’ol</p>
+    <a class="pro-sidebar__item is-active" href="index.html">☀ Aujourd’hui</a>
+    <a class="pro-sidebar__item" href="demandes.html">✉ Demandes <span class="pro-sidebar__badge" data-badge="demandes" hidden></span></a>
+    <a class="pro-sidebar__item" href="agenda.html">▦ Agenda</a>
+    <a class="pro-sidebar__item" href="clientes.html">♡ Clientes</a>
+    <a class="pro-sidebar__item" href="prestations.html">✂ Prestations</a>
+    <a class="pro-sidebar__item" href="disponibilites.html">◷ Disponibilités</a>
+    <a class="pro-sidebar__item" href="encaissements.html">€ Encaissements</a>
+    <a class="pro-sidebar__item" href="reglages.html">⚙ Réglages</a>
+    <div class="pro-sidebar__spacer">
+      <button type="button" class="pro-sidebar__add" data-open="ajouter-rdv">＋ Ajouter un RDV</button>
+    </div>
+  </nav>
+
+  <main class="pro-page__main">
+    <div class="pro-topbar">
+      <div>
+        <h1>Bonjour Eni’ol ♡</h1>
+        <p class="pro-topbar__date" id="pro-date"></p>
+      </div>
+      <a class="pro-gear" href="reglages.html" aria-label="Réglages">⚙</a>
+    </div>
+    <div class="depart-wrap" style="position:relative; display:inline-block;">
+      <button type="button" class="depart-select" id="depart-toggle" aria-haspopup="listbox" aria-expanded="false"></button>
+      <div id="depart-menu" hidden style="position:absolute; top:calc(100% + 6px); left:0; z-index:5; background:var(--surface); border:1px solid var(--ink); border-radius:12px; padding:6px; min-width:220px; box-shadow:0 8px 20px -8px rgba(36,24,17,.35);"></div>
+    </div>
+
+    <a class="requests-banner" href="demandes.html" id="requests-banner" hidden>
+      <span class="requests-banner__count" id="requests-count"></span>
+      <span style="flex:1;">
+        <p class="requests-banner__title" id="requests-title"></p>
+        <p class="requests-banner__sub" id="requests-sub"></p>
+      </span>
+      <span class="requests-banner__chevron">›</span>
+    </a>
+
+    <div id="next-rdv-wrap"></div>
+
+    <div id="day-timeline-wrap"></div>
+
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="stat-tile" style="text-align:left; padding:14px;">
+        <p class="stat-tile__label" style="margin:0;">CETTE SEMAINE</p>
+        <p class="stat-tile__value" id="stat-week-count" style="margin-top:6px; font-size:22px;">—</p>
+        <p class="stat-tile__label" id="stat-week-sub" style="margin-top:2px; font-size:13px; text-transform:none; letter-spacing:0; font-family:var(--font-ui); color:var(--ink-2);"></p>
+      </div>
+      <div class="stat-tile" style="text-align:left; padding:14px;">
+        <p class="stat-tile__label" style="margin:0;">RESTE À ENCAISSER</p>
+        <p class="stat-tile__value" id="stat-reste" style="margin-top:6px; font-size:22px;">—</p>
+        <p class="stat-tile__label" id="stat-reste-sub" style="margin-top:2px; font-size:13px; text-transform:none; letter-spacing:0; font-family:var(--font-ui); color:var(--ink-2);"></p>
+      </div>
+    </div>
+
+    <div class="month-banner" id="month-banner"></div>
+  </main>
+</div>
+
+<div class="bottom-nav-wrap" style="position:fixed; left:0; right:0; bottom:0; z-index:10;">
+  <button type="button" class="fab" style="position:absolute; right:16px; top:-30px;" data-open="ajouter-rdv" aria-label="Ajouter un rendez-vous">＋</button>
+  <nav class="bottom-nav" aria-label="Navigation Eni’ol">
+    <a class="bottom-nav__item is-active" href="index.html"><span class="bottom-nav__icon">☀</span><span class="bottom-nav__label">Aujourd’hui</span></a>
+    <a class="bottom-nav__item" href="demandes.html"><span class="bottom-nav__icon">✉</span><span class="bottom-nav__badge" data-badge="demandes" hidden></span><span class="bottom-nav__label">Demandes</span></a>
+    <a class="bottom-nav__item" href="agenda.html"><span class="bottom-nav__icon">▦</span><span class="bottom-nav__label">Agenda</span></a>
+    <a class="bottom-nav__item" href="clientes.html"><span class="bottom-nav__icon">♡</span><span class="bottom-nav__label">Clientes</span></a>
+    <a class="bottom-nav__item" href="reglages.html"><span class="bottom-nav__icon">⋯</span><span class="bottom-nav__label">Plus</span></a>
+  </nav>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/dates.js"></script>
+<script src="../assets/js/travel.js"></script>
+<script src="../assets/js/availability.js"></script>
+<script src="../assets/js/status.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/strings.js"></script>
+<script src="../assets/js/pro/nav-badge.js"></script>
+<script src="../assets/js/pro/ajouter-rdv.js"></script>
+<script src="../assets/js/pro/index.js"></script>
+<script src="../assets/js/demo-bar.js"></script>
+</body>
+</html>

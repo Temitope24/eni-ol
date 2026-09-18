@@ -1,0 +1,124 @@
+/*
+  Design tokens — colors + typography only.
+  Source: "Plan de conception.dc.html" §1 (Jetons de couleur) and §2 (Typographie).
+  Spacing, radii, shadows, and breakpoints are NOT here — those are base.css's job
+  (§3 of the same file, batch B2), per CODE-BATCHES.md.
+
+  Token names reuse the design file's own vocabulary verbatim (--ground, --ink-2,
+  etc.) rather than inventing new ones.
+*/
+
+/* ---- Fonts ----
+   Exact import string from Plan de conception.dc.html's own <helmet>.
+   Three typefaces only, per §2: "Gloock (display, 400 uniquement) · Instrument
+   Sans (400/500/600) · DM Mono (400/500)". Caveat (used once, for Eni'ol's
+   handwritten signature on the homepage) is NOT part of this shared system —
+   §2 explicitly says "toutes trois" (all three). It gets imported locally by
+   index.html in batch B10, not here.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Gloock&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ---- Color tokens (§1) ---- */
+  --ground:        #F2EAE0; /* fond papier, toutes les pages */
+  --surface:       #FBF7F2; /* carte, feuille, champ */
+  --sand:          #E8DCCC; /* puce inactive, en-tête de tableau, sélection douce */
+  --rule:          #DCCDBA; /* filets 1px, contours de carte */
+  --ink:           #241811; /* encre : titres, corps. jamais de noir */
+  --ink-2:         #6B5647; /* texte secondaire, descriptions */
+  /* §1's table doesn't list this one — it's the literal color the rendered
+     maquettes actually use for most body/description paragraphs (hero
+     subhead, service descriptions, FAQ answers, etc.), distinct from the
+     more muted --ink-2 (used for smaller secondary text: captions, chip
+     meta). Conflating the two in B10 was the mistake, found by checking
+     P01/P13's literal per-paragraph colors against what was actually
+     rendered, not by re-reading §1's token table again. */
+  --ink-body:      #4A3A2C;
+  --ink-3:         #8A7666; /* icônes, désactivé, placeholders 17px+ UNIQUEMENT — jamais texte < 18px */
+  --action:        #7B3A1E; /* bouton primaire, liens, sélection active */
+  --action-press:  #602C15; /* survol / enfoncé */
+  --heart:         #93504A; /* ♡ seulement — puce, ornement, signature */
+  --deep:          #33241A; /* sections inversées, pied de page, barre d'action collante */
+  --focus:         #7B3A1E; /* anneau de focus 2px + offset 2px */
+  --focus-on-deep: #E8DCCC; /* anneau de focus quand le fond est --deep */
+
+  /* ---- État colors (Espace pro) — §1 "États de l'Espace pro" ----
+     Each state is icon + word + color together; color is never the only
+     carrier of meaning (§7 accessibilité / §12 in the design plan). */
+  --state-ok-bg:     #DDE8DC; --state-ok-ink:     #2C5440; /* ✓ OK — ≥ 15 min de marge */
+  --state-warn-bg:   #F6E5C8; --state-warn-ink:   #7A4A0C; /* ◔ Trajet serré / Loin / Arrhes en attente */
+  --state-danger-bg: #F7DFD9; --state-danger-ink: #8E2E22; /* ✕ Ne tient pas */
+  --state-project-bg:#E4E9EC; --state-project-ink:#3C5563; /* ✦ Projet — fabrication sur mesure / devis */
+
+  /* Client-relationship tag (e.g. "Nouvelle cliente", "Fidèle") — seen in R02/R07/R13.
+     Ink reuses --heart (#93504A), same value, not a new color. */
+  --tag-bg: #F2E3DE;
+
+  /* ---- Typography (§2) ---- */
+  --font-display: 'Gloock', serif;                    /* 400 only */
+  --font-ui:      'Instrument Sans', system-ui, sans-serif; /* 400/500/600 */
+  --font-mono:    'DM Mono', monospace;                /* 400/500, tabular figures */
+
+  --weight-ui-regular:   400;
+  --weight-ui-medium:    500;
+  --weight-ui-semibold:  600;
+  --weight-mono-regular: 400;
+  --weight-mono-medium:  500;
+
+  /* Type scale — mobile (390) values below; desktop (1280) values override
+     inside the @media block further down. The design table gives mobile/
+     desktop pairs but doesn't itself state the swap breakpoint — using 900px
+     here since that's the documented layout breakpoint (§3) where public
+     pages already restructure. Flagging this as an implementation choice,
+     not a value taken directly from the table. */
+
+  /* D1 — héros: Gloock 400, -0.02em tracking */
+  --text-d1-size: 38px;     --text-d1-leading: 40px;
+  --text-d1-tracking: -0.02em;
+
+  /* D2 — titre de section: Gloock 400, -0.015em */
+  --text-d2-size: 28px;     --text-d2-leading: 32px;
+  --text-d2-tracking: -0.015em;
+
+  /* D3 — titre d'écran / prestation: Gloock 400, -0.01em */
+  --text-d3-size: 22px;     --text-d3-leading: 28px;
+  --text-d3-tracking: -0.01em;
+
+  /* Corps L: Instrument Sans 400 */
+  --text-body-l-size: 17px; --text-body-l-leading: 26px;
+  --text-body-l-tracking: 0;
+
+  /* Corps: Instrument Sans 400 */
+  --text-body-size: 15px;   --text-body-leading: 23px;
+  --text-body-tracking: 0;
+
+  /* Libellé / bouton: Instrument Sans 500–600 */
+  --text-label-size: 15px;  --text-label-leading: 20px;
+  --text-label-tracking: 0;
+
+  /* Petit / aide: Instrument Sans 400 */
+  --text-small-size: 13px;  --text-small-leading: 19px;
+  --text-small-tracking: 0;
+
+  /* Micro-étiquette (CAPS): DM Mono 500, +0.08em */
+  --text-micro-size: 11px;  --text-micro-leading: 15px;
+  --text-micro-tracking: 0.08em;
+
+  /* Heures, prix, réfs: DM Mono 400/500, tabular-nums, +0.01em */
+  --text-mono-size: 14px;   --text-mono-leading: 18px;
+  --text-mono-tracking: 0.01em;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --text-d1-size: 64px;     --text-d1-leading: 64px;
+    --text-d2-size: 44px;     --text-d2-leading: 48px;
+    --text-d3-size: 30px;     --text-d3-leading: 36px;
+    --text-body-l-size: 19px; --text-body-l-leading: 30px;
+    --text-body-size: 16px;   --text-body-leading: 26px;
+    /* Libellé/bouton, Petit/aide, Micro-étiquette, and Heures/prix/réfs are
+       flat between breakpoints per the table, except "Petit/aide" which
+       nudges from 13/19 to 13.5/20 on desktop: */
+    --text-small-size: 13.5px; --text-small-leading: 20px;
+  }
+}

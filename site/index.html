@@ -1,0 +1,580 @@
+<!doctype html>
+<!--
+  index.html — Accueil — batch B10, then corrected twice against fresh
+  line-by-line reads of P01 (mobile) and P13 (desktop 1280).
+
+  Second correction pass (client review):
+  - "Je viens chez vous": P01 draws circled 1 / 2 / 3 with its own short
+    texts; P13 draws plain 01 / 02 / 03 with longer texts and a shorter
+    third title. They had been merged into one version for both widths.
+  - The design canvas sets no line-height, so every heading without an
+    explicit one renders at the font's normal leading. This page had
+    inherited base.css's 23/26 px body leading instead, which crushed the
+    44 px "Avant / Après" title onto its helper line. body is back to
+    `normal`; the few explicit values (hero 1.02 / 1.5 / 1.55, bio 1.6 /
+    1.65, FAQ answers 1.55 / 1.6, steps title 1.1 / 1.08) are set literally.
+  - Avant / Après: P01 puts the slider BEFORE the thumbnails; P13 puts the
+    thumbnails in the left column. Helper text differs per width. The
+    slider colors are P01/P13's own: "avant" is the darker stripe.
+  - Mes prestations rows: P01 = small inline pill + "· 2 h 30 · préavis
+    72 h" (duration unless sans déplacement/projet, notice above 48 h);
+    P13 = tagline + muted inline "2 h 30 · 🚶‍♀️ Je me déplace". The mobile
+    "7" count next to the title was missing. Fabrication is "dès 150 €".
+  - Header "Réserver" pointed at prestations.html; it books now.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Eni’ol — Pose et fabrication de perruques à Paris</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/motion.css">
+<link rel="stylesheet" href="assets/css/public-motion-off.css">
+<script src="assets/js/motion.js"></script>
+<style>
+  /* Page-specific layout only. Every value is transcribed from P01
+     (mobile, default) or, inside the @media block, from P13 (desktop). */
+  body { line-height: normal; } /* the design canvas's leading — see header comment */
+  .wrap { max-width: var(--content-max-width); margin: 0 auto; }
+  .only-d { display: none; }
+
+  /* Sticky, not fixed: the .banner above it is a normal-flow sibling, and
+     sticky is what lets the header sit right below the banner at first
+     (like any other in-flow element) and only start pinning to the
+     viewport top once scrolling reaches it — position:fixed would instead
+     glue it to y:0 immediately, sitting on top of the banner rather than
+     under it. */
+  header.site {
+    position: sticky; top: 0; z-index: 20; background: var(--ground);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 20px; border-bottom: 1px solid var(--rule);
+  }
+  header.site .logo { font-family: var(--font-display); font-size: 24px; letter-spacing: -0.01em; }
+  header.site nav.desktop-links { display: none; gap: 24px; font-size: 15px; margin-left: 20px; }
+  header.site nav.desktop-links a { color: var(--ink); text-decoration: none; }
+  header.site .spacer { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .mobile-prestations-link { font-size: 13px; color: var(--ink-2); text-decoration: none; }
+  header.site .ig-link-desktop { display: none; color: var(--ink); }
+  /* P01: a small pill — 500 13px, padding 11px 14px, no hard shadow. The
+     ::after widens the tap target to 44 px without changing its drawn size. */
+  .header-cta.btn { font-size: 13px; padding: 11px 14px; min-height: 0; box-shadow: none; position: relative; }
+  .header-cta.btn::after { content: ""; position: absolute; inset: -4px -2px; }
+
+  .banner { background: var(--deep); color: var(--ink-on-deep); text-align: center; padding: 9px 14px; font-size: 13px; }
+
+  .hero p.sub, .hero-grid p.sub { color: var(--ink-body); }
+
+  .hero { padding: 28px 20px 32px; }
+  .hero h1 { font-size: 38px; line-height: 1.02; letter-spacing: var(--text-d1-tracking); margin: 0 0 14px; max-width: 14ch; }
+  .hero p.sub { margin: 0 0 20px; font-size: 17px; line-height: 1.5; max-width: 44ch; }
+  .hero .ctas { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+  .hero .ctas .btn--primary { font-size: 16px; padding: 17px; }
+  .hero .ctas .btn--secondary { font-size: 15px; padding: 16px; }
+  .hero .cta-help { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); text-align: center; }
+  .hero-photo-wrap { padding: 0 20px 28px; }
+  .hero-grid { display: none; }
+  .photo-caption { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--ink-2); }
+  .photo-caption__heart { font-size: 20px; color: var(--heart); }
+  .photo-caption__text { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-align: center; padding: 0 12px; }
+
+  .steps { padding: 28px 20px; background: var(--sand); }
+  .steps-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--action); margin: 0 0 6px; }
+  .steps h2 { font-size: 28px; line-height: 1.1; margin: 0 0 18px; }
+  .steps-list { display: flex; flex-direction: column; gap: 14px; }
+  .steps-list .step { display: flex; gap: 12px; align-items: flex-start; }
+  .steps-list .num {
+    font-family: var(--font-mono); font-size: 13px; color: var(--action);
+    border: 1px solid var(--action); border-radius: 50%;
+    width: 26px; height: 26px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .steps-list .step p:first-of-type { margin: 0; font-weight: 600; font-size: 16px; }
+  .steps-list .step p:last-of-type { margin: 2px 0 0; font-size: 14px; color: var(--ink-body); }
+  .desktop-only-suffix { display: none; }
+
+  .services { padding: 28px 20px; }
+  .services-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .services-head h2 { font-size: 28px; margin: 0; }
+  .services-head .count { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--ink-3); }
+  .services-head .see-all-desktop { display: none; color: var(--ink); }
+  .prix-provisoires { margin: 0 0 16px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--ink-3); }
+  /* Grid, so mobile (title + price on one line, text full width under
+     both) and desktop (text stays in the left column, price on the right)
+     are the same markup. */
+  .service-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; align-items: baseline;
+    border-top: 1px solid var(--rule); padding: 14px 0;
+  }
+  .service-row:last-child { border-bottom: 1px solid var(--rule); }
+  .service-row h3 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 19px; }
+  .service-row .price { font-family: var(--font-mono); font-size: 15px; white-space: nowrap; }
+  .service-row .desc { grid-column: 1 / -1; margin: 4px 0 0; font-size: 14px; color: var(--ink-body); }
+  .service-row .badge-line { grid-column: 1 / -1; margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); }
+  .service-row .pill { background: var(--sand); border-radius: var(--radius-pill); padding: 3px 8px; }
+  .service-row .pill--projet { background: var(--state-project-bg); color: var(--state-project-ink); }
+  .services-cta { margin: 16px 0 0; }
+  .services-cta .btn { padding: 15px 20px; }
+  .services-columns { display: block; }
+  .services-hesitate { display: none; }
+
+  .compare { padding: 0 20px 28px; }
+  .compare h2 { font-size: 28px; margin: 0 0 4px; }
+  .compare .aide { margin: 0 0 14px; font-size: 14px; color: var(--ink-body); }
+  .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .compare-grid .placeholder-swatch { aspect-ratio: 1; border: 1px solid var(--rule); border-radius: 10px; }
+  .compare-caption { margin: 8px 0 0; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; color: var(--ink-3); }
+
+  .bio { padding: 28px 20px; background: var(--deep); color: var(--ink-on-deep); }
+  .bio-photo { aspect-ratio: 4/5; margin-bottom: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: repeating-linear-gradient(135deg, var(--deep-2) 0 8px, #41301F 8px 16px); border: 1px solid #6B5647; border-radius: var(--radius-photo); color: var(--ink-2-on-deep); text-align: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; }
+  .bio-photo .heart { font-size: 20px; color: var(--heart-on-deep); }
+  .bio h2 { font-size: 28px; margin: 0 0 12px; color: var(--ground); }
+  .bio p { margin: 0 0 12px; font-size: 16px; line-height: 1.6; }
+  .bio p + p { margin-bottom: 18px; }
+  .bio .signature { border-top: 1px solid #6B5647; padding-top: 16px; }
+  .bio .signature .bisous { margin: 0 0 2px; font-size: 16px; line-height: normal; }
+  .bio .signature .nom { margin: 0 0 4px; font-family: 'Caveat', cursive; font-weight: 400; font-size: 46px; line-height: 1; color: var(--heart-on-deep); letter-spacing: 0.02em; }
+  .bio .signature .quote { margin: 14px 0 0; font-size: 14px; line-height: normal; color: var(--ink-2-on-deep); font-style: italic; }
+
+  .payment-block { padding: 24px 20px; border-bottom: 1px solid var(--rule); }
+  .payment-block h2 { font-size: 22px; margin: 0 0 6px; }
+  .payment-block p { margin: 0; font-size: 14px; color: var(--ink-body); }
+
+  .reviews { padding: 24px 20px; border-bottom: 1px solid var(--rule); text-align: center; }
+  .reviews .heart { margin: 0; font-size: 22px; color: var(--heart); }
+  .reviews h2 { margin: 6px 0 0; font-family: var(--font-display); font-weight: 400; font-size: 20px; }
+  .reviews p.desc { margin: 6px 0 0; font-size: 14px; color: var(--ink-body); }
+
+  .faq { padding: 24px 20px; }
+  .faq h2 { font-size: 26px; margin: 0 0 12px; }
+  .faq details { border-top: 1px solid var(--rule); padding: 14px 0; }
+  .faq details:last-child { border-bottom: 1px solid var(--rule); }
+  .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; font-weight: 600; font-size: 15.5px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary .toggle { color: var(--action); font-family: var(--font-ui); display: inline-block; transition: transform 320ms cubic-bezier(.2, .7, .3, 1); }
+  .faq summary .toggle::before { content: "＋"; }
+  .faq details[open] summary .toggle { transform: rotate(180deg); }
+  .faq details[open] summary .toggle::before { content: "−"; }
+  /* Answers drop down / close up instead of snapping open. */
+  .faq details::details-content {
+    block-size: 0; overflow-y: clip;
+    transition: block-size 360ms cubic-bezier(.2, .7, .3, 1), content-visibility 360ms allow-discrete;
+  }
+  .faq details[open]::details-content { block-size: auto; }
+  .faq p.answer { margin: 8px 0 0; font-size: 14.5px; line-height: 1.55; color: var(--ink-body); }
+  .faq p.answer.pending { font-style: italic; color: var(--ink-2); }
+
+  .contact-block { background: var(--sand); padding: 24px 20px; }
+  .contact-block h2 { font-size: 26px; margin: 0 0 14px; }
+  .contact-row { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 10px; }
+  .contact-row:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+  .contact-row .value { font-family: var(--font-mono); font-size: 13px; color: var(--action); }
+
+  footer.site { background: var(--deep); color: var(--ink-2-on-deep); padding: 20px; font-size: 12.5px; display: flex; flex-direction: column; gap: 6px; }
+  footer.site .logo { font-family: var(--font-display); font-size: 20px; color: var(--ground); }
+  footer.site a { color: var(--heart-on-deep); }
+  footer.site p { margin: 0; }
+  footer.site .meta { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; }
+
+  @media (min-width: 900px) {
+    .only-m { display: none; }
+    .only-d { display: inline; }
+    .wrap--wide { padding: 0 56px; }
+    header.site { justify-content: flex-start; padding: 20px 56px; gap: 28px; }
+    header.site .logo { font-size: 28px; }
+    header.site nav.desktop-links { display: flex; }
+    header.site .spacer { gap: 14px; }
+    header.site .ig-link-desktop { display: inline; font-size: 15px; text-decoration: underline; text-underline-offset: 4px; }
+    .mobile-prestations-link { display: none; }
+    .header-cta.btn { font-size: 15px; padding: 15px 24px; box-shadow: var(--shadow-button); }
+    .banner { padding: 10px; font-size: 14px; }
+
+    .hero { display: none; }
+    .hero-photo-wrap { display: none; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px;
+      padding: 72px 56px; align-items: center;
+    }
+    .hero-grid h1 { font-size: 64px; line-height: 1.02; letter-spacing: var(--text-d1-tracking); margin: 0 0 20px; }
+    .hero-grid p.sub { font-size: 19px; line-height: 1.55; max-width: 44ch; margin: 0 0 32px; }
+    .hero-grid .ctas { display: flex; flex-direction: row; align-items: center; gap: 16px; margin-bottom: 14px; }
+    .hero-grid .ctas .btn--primary { font-size: 17px; padding: 19px 32px; }
+    .hero-grid .ctas .btn--secondary { font-size: 16px; padding: 18px 26px; }
+    .hero-grid .cta-help { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); }
+    .hero-grid .photo-frame { aspect-ratio: 4/5; border-radius: 14px; }
+
+    .desktop-only-suffix { display: inline; }
+    .steps { padding: 64px 56px; }
+    .steps-eyebrow { font-size: 12px; }
+    .steps h2 { font-size: 44px; line-height: 1.08; margin-bottom: 36px; }
+    .steps-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .steps-list .step { flex-direction: column; gap: 8px; border-top: 2px solid var(--ink); padding-top: 16px; }
+    .steps-list .num { border: 0; width: auto; height: auto; border-radius: 0; display: block; }
+    .steps-list .step p:first-of-type { font-family: var(--font-display); font-weight: 400; font-size: 24px; margin: 0 0 6px; }
+    .steps-list .step p:last-of-type { margin: 0; font-size: 16px; }
+
+    .services { padding: 64px 56px; }
+    .services-head { align-items: flex-end; margin-bottom: 8px; }
+    .services-head h2 { font-size: 44px; }
+    .services-head .count { display: none; }
+    .services-head .see-all-desktop { display: inline; font-size: 16px; text-decoration: underline; text-underline-offset: 4px; }
+    .prix-provisoires { font-size: 11px; margin-bottom: 24px; }
+    .services-cta { display: none; }
+    .services-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; }
+    .service-row { column-gap: 20px; padding: 18px 0; }
+    .service-row h3 { font-size: 24px; }
+    .service-row .price { font-size: 17px; grid-row: 1; grid-column: 2; }
+    .service-row .desc { grid-column: 1; font-size: 15px; }
+    .service-row .badge-line { display: none; }
+    .service-row .desc-inline-meta { color: var(--ink-2); }
+    .services-hesitate { display: block; margin: 0; padding: 18px 0; font-size: 15px; color: var(--ink-body); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+
+    /* P13: text + thumbnails in the left column (vertically centered),
+       slider on the right. */
+    .compare {
+      padding: 0 56px 64px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px;
+      grid-template-rows: 1fr auto auto auto auto 1fr;
+    }
+    .compare h2 { grid-column: 1; grid-row: 2; font-size: 44px; margin: 0 0 8px; }
+    .compare .aide { grid-column: 1; grid-row: 3; font-size: 16px; margin: 0 0 20px; }
+    .compare-grid { grid-column: 1; grid-row: 4; gap: 12px; margin-top: 0; }
+    .compare-grid .placeholder-swatch { border-radius: 12px; background: repeating-linear-gradient(135deg, var(--sand) 0 8px, var(--placeholder-swatch-b) 8px 16px); }
+    .compare-caption { grid-column: 1; grid-row: 5; margin-top: 10px; font-size: 11px; }
+    .compare-media { grid-column: 2; grid-row: 1 / -1; }
+    .compare .compare-slider { border-radius: 14px; }
+    .compare .compare-slider__side--before.placeholder-swatch { background: repeating-linear-gradient(135deg, #DFD1BE 0 10px, #D6C6B0 10px 20px); }
+    .compare .compare-slider__side--after.placeholder-swatch { background: repeating-linear-gradient(135deg, #EFE3D6 0 10px, #E8DCCC 10px 20px); }
+    .compare .compare-slider__handle { width: 48px; height: 48px; }
+    .compare .compare-slider__tag { font-size: 11px; padding: 5px 10px; bottom: 14px; }
+    .compare .compare-slider__tag--before { left: 14px; }
+    .compare .compare-slider__tag--after { right: 14px; }
+
+    .bio { padding: 64px 56px; display: grid; grid-template-columns: .9fr 1.1fr; gap: 56px; align-items: center; }
+    .bio-photo { margin-bottom: 0; border-radius: 14px; }
+    .bio h2 { font-size: 44px; margin-bottom: 20px; }
+    .bio p { font-size: 18px; line-height: 1.65; max-width: 54ch; margin-bottom: 16px; }
+    .bio p + p { margin-bottom: 28px; }
+    .bio .signature { padding-top: 20px; }
+    .bio .signature .bisous { margin-bottom: 4px; font-size: 17px; }
+    .bio .signature .nom { margin-bottom: 6px; font-size: 54px; }
+    .bio .signature .quote { margin-top: 0; font-size: 15px; }
+
+    .lower-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto 1fr;
+      column-gap: 56px; row-gap: 20px; padding: 56px;
+    }
+    .faq { grid-column: 1; grid-row: 1 / span 3; padding: 0; }
+    .payment-block { grid-column: 2; grid-row: 1; }
+    .reviews { grid-column: 2; grid-row: 2; }
+    .contact-block { grid-column: 2; grid-row: 3; align-self: start; }
+    .payment-block, .reviews, .contact-block { border: 0; padding: 24px; }
+    .payment-block { background: var(--sand); border-radius: 16px; }
+    .payment-block h2 { font-size: 26px; }
+    .payment-block p { font-size: 16px; color: var(--chip-ink); }
+    .reviews { border: 1px solid var(--rule); background: var(--surface); border-radius: 16px; }
+    .reviews .heart { font-size: 24px; }
+    .reviews h2 { margin-top: 8px; font-size: 24px; }
+    .reviews p.desc { margin-top: 8px; font-size: 16px; }
+    .contact-block { background: none; border: 1px solid var(--rule); border-radius: 16px; }
+    .contact-row { font-size: 16px; }
+    .contact-row .value { font-size: 14px; }
+    .faq h2 { font-size: 36px; margin-bottom: 20px; }
+    .faq details { padding: 16px 0; }
+    .faq summary { font-size: 17px; }
+    .faq p.answer { font-size: 16px; line-height: 1.6; }
+
+    footer.site { padding: 32px 56px; flex-direction: row; justify-content: space-between; align-items: flex-end; font-size: 14px; }
+    footer.site .logo { font-size: 26px; }
+    footer.site .right { text-align: right; }
+    footer.site .meta { margin-top: 6px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner" id="banner"></div>
+
+<header class="site">
+  <span class="logo">Eni’ol</span>
+  <nav class="desktop-links">
+    <span><a href="prestations.html">Prestations</a></span>
+    <span><a href="#avant-apres">Avant / Après</a></span>
+    <span><a href="#moi-cest-eniol">À propos</a></span>
+    <span><a href="#faq">Questions</a></span>
+  </nav>
+  <div class="spacer">
+    <a class="mobile-prestations-link" href="prestations.html">Prestations</a>
+    <a class="ig-link-desktop" href="https://ig.me/m/pose.de.perruques">Écrire sur Instagram</a>
+    <a class="btn btn--primary header-cta" href="reserver.html">Réserver</a>
+  </div>
+</header>
+
+<main>
+  <!-- Hero — mobile (P01) -->
+  <section class="hero wrap">
+    <h1>Vos cheveux,<br>ma spécialité</h1>
+    <p class="sub">Pose et fabrication de perruques. Je me déplace chez vous, partout à Paris.</p>
+    <div class="ctas">
+      <a class="btn btn--primary" href="reserver.html">Réserver</a>
+      <span class="cta-help">Je vous réponds sous 24 h</span>
+      <a class="btn btn--secondary" href="https://ig.me/m/pose.de.perruques">Écrire sur Instagram</a>
+    </div>
+  </section>
+  <div class="hero-photo-wrap">
+    <div class="hero-photo photo-frame ratio-3-2 placeholder-swatch photo-caption">
+      <span class="photo-caption__heart">♡</span>
+      <span class="photo-caption__text">PHOTO 3:2 — GROS PLAN LACE /<br>TEXTURE DE CHEVEUX</span>
+    </div>
+  </div>
+
+  <!-- Hero — desktop (P13) -->
+  <section class="hero-grid wrap--wide">
+    <div>
+      <h1>Vos cheveux,<br>ma spécialité</h1>
+      <p class="sub">Pose et fabrication de perruques. Je me déplace chez vous, partout à Paris et en petite couronne. Vous ne bougez pas : j’arrive avec tout mon matériel.</p>
+      <div class="ctas">
+        <a class="btn btn--primary" href="reserver.html">Réserver</a>
+        <a class="btn btn--secondary" href="https://ig.me/m/pose.de.perruques">Écrire sur Instagram</a>
+      </div>
+      <span class="cta-help">Je vous réponds sous 24 h · espèces ou carte, sur place ♡</span>
+    </div>
+    <div class="photo-frame ratio-4-5 placeholder-swatch photo-caption">
+      <span class="photo-caption__heart">♡</span>
+      <span class="photo-caption__text">PHOTO 4:5 — POSE TERMINÉE,<br>CADRAGE SERRÉ SUR LA LACE</span>
+    </div>
+  </section>
+
+  <!-- Je viens chez vous — P01 (mobile) and P13 (desktop) wording differ -->
+  <section class="steps">
+    <div class="wrap wrap--wide">
+      <p class="steps-eyebrow">Pas de salon<span class="desktop-only-suffix">, pas de trajet pour vous</span></p>
+      <h2>Je viens chez vous</h2>
+      <div class="steps-list">
+        <div class="step"><span class="num"><span class="only-m">1</span><span class="only-d">01</span></span>
+          <div><p>Vous m’envoyez votre demande</p><p><span class="only-m">Prestation, adresse, créneau. 3 minutes.</span><span class="only-d">Prestation, adresse, créneau, photos. Trois minutes, depuis votre téléphone.</span></p></div>
+        </div>
+        <div class="step"><span class="num"><span class="only-m">2</span><span class="only-d">02</span></span>
+          <div><p>Je vous réponds sous 24 h</p><p><span class="only-m">J’accepte, ou je vous propose un autre créneau.</span><span class="only-d">J’accepte, ou je vous propose un autre créneau. Votre créneau est gardé pendant ce temps.</span></p></div>
+        </div>
+        <div class="step"><span class="num"><span class="only-m">3</span><span class="only-d">03</span></span>
+          <div><p><span class="only-m">J’arrive chez vous avec tout mon matériel</span><span class="only-d">J’arrive chez vous</span></p><p><span class="only-m">Vous ne bougez pas. Une chaise et une prise suffisent.</span><span class="only-d">Avec ma valise, mes produits et mes ciseaux. Une chaise et une prise suffisent.</span></p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mes prestations -->
+  <section class="services">
+    <div class="wrap wrap--wide">
+      <div class="services-head">
+        <h2>Mes prestations</h2>
+        <span class="count" id="services-count"></span>
+        <a class="see-all-desktop" href="prestations.html">Voir les 7 prestations en détail →</a>
+      </div>
+      <p class="prix-provisoires">PRIX PROVISOIRES</p>
+      <div id="services-list" class="services-columns"><!-- rendered from data.js --></div>
+      <p class="services-cta"><a class="btn btn--secondary" href="prestations.html">Voir les 7 prestations en détail</a></p>
+    </div>
+  </section>
+
+  <!-- Avant / Après — mobile order: title, help, slider, thumbnails (P01) -->
+  <section class="compare" id="avant-apres">
+    <h2>Avant / Après</h2>
+    <p class="aide"><span class="only-m">Faites glisser pour comparer.</span><span class="only-d">Faites glisser la poignée — ou utilisez les flèches du clavier.</span></p>
+    <div class="compare-media">
+      <div class="compare-slider ratio-4-5" id="compare-slider">
+        <div class="compare-slider__side compare-slider__side--after placeholder-swatch"></div>
+        <div class="compare-slider__side compare-slider__side--before placeholder-swatch" id="compare-before"></div>
+        <span class="compare-slider__tag compare-slider__tag--before">AVANT</span>
+        <span class="compare-slider__tag compare-slider__tag--after">APRÈS</span>
+        <div class="compare-slider__divider" id="compare-divider" aria-hidden="true"></div>
+        <span class="compare-slider__handle" id="compare-handle" aria-hidden="true">↔</span>
+        <input class="compare-slider__range" type="range" min="0" max="100" value="50"
+               aria-label="Comparer avant et après" id="compare-range">
+      </div>
+      <button type="button" class="sr-only" id="compare-fallback-btn">Basculer entre avant et après</button>
+    </div>
+    <div class="compare-grid">
+      <div class="placeholder-swatch"></div><div class="placeholder-swatch"></div><div class="placeholder-swatch"></div>
+    </div>
+    <p class="compare-caption">PHOTOS DE MON TRAVAIL — PARIS, 2026</p>
+  </section>
+
+  <!-- Moi, c'est Eni'ol -->
+  <section class="bio" id="moi-cest-eniol">
+    <div class="bio-photo">
+      <span class="heart">♡</span>
+      <span>PORTRAIT 4:5 — ENI’OL,<br>AVEC SA VALISE</span>
+    </div>
+    <div>
+      <h2>Moi, c’est Eni’ol</h2>
+      <p>J’ai 17 ans, je suis en première à Paris, et je pose des perruques depuis que mes mains savent tenir un peigne. Je travaille seule : c’est moi qui vous réponds, moi qui viens, moi qui finis la pose.</p>
+      <p>Je me déplace quand vous voulez, le week-end et pendant les vacances, mais pas le soir à partir de 19h. Dites-moi ce qui vous arrange : je m’organise autour de vous.</p>
+      <div class="signature">
+        <p class="bisous">Bisous,</p>
+        <p class="nom">Eni’ol ♡</p>
+        <p class="quote">“Life isn’t perfect but your wig can be 💕”</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mobile: payment / reviews / faq / contact stacked; Desktop: FAQ column + stacked cards -->
+  <div class="lower-grid">
+    <div class="payment-block">
+      <h2>Espèces ou carte, sur place ♡</h2>
+      <p>Des arrhes de <span id="arrhes-montant">20 €</span> sont demandées après mon accord · annulation gratuite jusqu’à 48 h avant. <a href="conditions.html">Lire les conditions</a></p>
+    </div>
+
+    <div class="reviews">
+      <p class="heart">♡</p>
+      <h2>Vos avis arrivent bientôt ♡</h2>
+      <p class="desc">Vous êtes déjà passée entre mes mains ? Écrivez-moi, avec plaisir.</p>
+    </div>
+
+    <div class="faq" id="faq">
+      <h2>Questions fréquentes</h2>
+      <div id="faq-list"><!-- rendered from strings.js --></div>
+    </div>
+
+    <div class="contact-block">
+      <h2>Me joindre</h2>
+      <div class="contact-row"><span>Instagram <span style="color:var(--ink-2);">(le plus rapide)</span></span><span class="value">@pose.de.perruques</span></div>
+      <div class="contact-row"><span>Téléphone</span><span class="value" id="contact-tel"></span></div>
+      <div class="contact-row"><span>Snapchat</span><span class="value">@p_mvs3x</span></div>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div>
+    <span class="logo">Eni’ol</span>
+    <p style="margin-top:8px;">📍 Paris · Je me déplace chez vous</p>
+  </div>
+  <div class="right">
+    <p><a href="conditions.html">Conditions &amp; mentions légales</a> · SIRET : en cours</p>
+    <p class="meta">MAQUETTE DE DÉMONSTRATION · DONNÉES FICTIVES</p>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/strings.js"></script>
+<script src="assets/js/dates.js"></script>
+<script src="assets/js/travel.js"></script>
+<script src="assets/js/availability.js"></script>
+<script src="assets/js/status.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/demo-bar.js"></script>
+<script>
+(function () {
+  var S = window.ENIOL_STORE, D = window.ENIOL_DATES, ST = window.ENIOL_STRINGS;
+  var state = S.get();
+
+  // ---- Bandeau (auto from moisOuverts, or a manual override — Réglages) ----
+  function renderBanner() {
+    var b = state.settings.banniere;
+    var el = document.getElementById("banner");
+    if (!b.auto && b.texteManuel) { el.textContent = b.texteManuel; return; }
+    var latest = state.settings.moisOuverts.slice().sort().pop();
+    if (!latest) { el.hidden = true; return; }
+    var mois = D.MONTHS_LONG[+latest.slice(5, 7) - 1];
+    el.textContent = "🌟 Les réservations de " + mois + " sont ouvertes 🌟";
+  }
+  renderBanner();
+
+  // ---- Mes prestations ----
+  var TRAVEL_BADGE = { domicile_cliente: "🚶‍♀️ Je me déplace", sans_deplacement: "🏠 Sans déplacement", au_choix: "↔ Au choix" };
+  function durationLabel(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    return h ? (h + " h" + (m ? " " + m : "")) : (m + " min");
+  }
+  // The design's notice wording: "72 h", "5 jours", "7 jours", "3 semaines".
+  function preavisLabel(hours) {
+    if (hours % 24 !== 0 || hours <= 72) return hours + " h";
+    var d = hours / 24;
+    return (d > 7 && d % 7 === 0) ? (d / 7) + " semaines" : d + " jours";
+  }
+  function renderRow(svc) {
+    var projet = svc.modeReservation === "projet";
+    var withDuration = svc.dureeMin && svc.lieu !== "sans_deplacement" && !projet;
+    // P01 (mobile): one small pill, then duration (not for sans
+    // déplacement / projet) and the notice when it's above 48 h.
+    var bits = [];
+    if (withDuration) bits.push(durationLabel(svc.dureeMin));
+    if (svc.delaiMinimumHeures > 48) bits.push("préavis " + preavisLabel(svc.delaiMinimumHeures));
+    var pill = projet
+      ? "<span class=\"pill pill--projet\">✦ Sur devis</span>"
+      : "<span class=\"pill\">" + TRAVEL_BADGE[svc.lieu] + "</span>";
+    // P13 (desktop): muted text after the shorter tagline, no notice
+    // except for the project.
+    var metaD = projet
+      ? "✦ Sur devis · préavis " + preavisLabel(svc.delaiMinimumHeures)
+      : (withDuration ? durationLabel(svc.dureeMin) + " · " : "") + TRAVEL_BADGE[svc.lieu];
+    var nomD = svc.nomCourt || svc.nom, accD = svc.accrocheDesktop || svc.accroche;
+    var nom = nomD === svc.nom ? svc.nom : "<span class=\"only-m\">" + svc.nom + "</span><span class=\"only-d\">" + nomD + "</span>";
+    return "<div class=\"service-row\">" +
+      "<h3>" + nom + "</h3>" +
+      "<span class=\"price\">" + D.formatServicePrice(svc) + "</span>" +
+      "<p class=\"desc\"><span class=\"only-m\">" + svc.accroche + "</span><span class=\"only-d\">" + accD + " <span class=\"desc-inline-meta\">" + metaD + "</span></span></p>" +
+      "<p class=\"badge-line\">" + pill + (bits.length ? " · " + bits.join(" · ") : "") + "</p>" +
+      "</div>";
+  }
+  function renderServices() {
+    var list = document.getElementById("services-list");
+    var services = state.services.filter(function (s) { return s.visible !== false; })
+      .sort(function (a, b) { return a.ordre - b.ordre; });
+    document.getElementById("services-count").textContent = services.length;
+    var half = Math.ceil(services.length / 2);
+    var cols = [services.slice(0, half), services.slice(half)];
+    list.innerHTML = cols.map(function (col, i) {
+      var extra = i === 1 ? "<p class=\"services-hesitate\">Vous hésitez entre deux prestations ? Écrivez-moi sur Instagram, je vous dis ce qui convient à vos cheveux — c’est gratuit et sans engagement ♡</p>" : "";
+      return "<div>" + col.map(renderRow).join("") + extra + "</div>";
+    }).join("");
+  }
+  renderServices();
+
+  var poseArrhes = state.services.filter(function (s) { return s.id === "pose"; })[0].arrhes;
+  document.getElementById("arrhes-montant").textContent = D.formatPrice(poseArrhes.valeur);
+
+  // ---- FAQ (7 questions; only #1 has a written answer — strings.js note) ----
+  function renderFaq() {
+    var list = document.getElementById("faq-list");
+    list.innerHTML = ST.PUBLIC.faq.map(function (item, i) {
+      var q = item.question[state.settings.registre] || item.question.vous;
+      var reponse = item.reponse;
+      var body = reponse
+        ? "<p class=\"answer\">" + (reponse[state.settings.registre] || reponse.vous) + "</p>"
+        : "<p class=\"answer pending\">Réponse à venir.</p>";
+      return "<details" + (i === 0 ? " open" : "") + "><summary>" + q + " <span class=\"toggle\" aria-hidden=\"true\"></span></summary>" + body + "</details>";
+    }).join("");
+  }
+  renderFaq();
+
+  document.getElementById("contact-tel").textContent = D.formatPhoneFr(state.settings.telephone);
+
+  // ---- Before / After ----
+  var range = document.getElementById("compare-range");
+  var before = document.getElementById("compare-before");
+  var divider = document.getElementById("compare-divider");
+  var handle = document.getElementById("compare-handle");
+  function setReveal(pct) {
+    before.style.width = pct + "%";
+    divider.style.left = pct + "%";
+    handle.style.left = pct + "%";
+  }
+  range.addEventListener("input", function () { setReveal(+range.value); });
+  setReveal(50);
+  document.getElementById("compare-fallback-btn").addEventListener("click", function () {
+    var next = +range.value < 50 ? 100 : 0;
+    range.value = next;
+    setReveal(next);
+  });
+})();
+</script>
+</body>
+</html>

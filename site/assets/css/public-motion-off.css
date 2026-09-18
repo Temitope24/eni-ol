@@ -1,0 +1,12 @@
+/*
+  Public site: no page-to-page slide on ordinary navigation (client
+  feedback — clicking "Prestations" or the "Réserver" button on the navbar
+  should just open the next page normally). motion.css's cross-document
+  slide stays defined there (still used by the fashion-style client-review
+  precedent this project follows for booking flows) but every public page
+  now opts itself OUT of it via @view-transition, the same technique
+  pro-motion-off.css already uses for the espace pro. The step-to-step
+  animation INSIDE reserver.html (motion.js's push()) is a separate,
+  same-document JS mechanism and is completely unaffected by this.
+*/
+@view-transition { navigation: none; }

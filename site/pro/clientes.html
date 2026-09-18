@@ -1,0 +1,119 @@
+<!doctype html>
+<!--
+  pro/clientes.html — batch B29. Source: PRO R13 (desktop 1280 — table +
+  drawer), read in full. R13 has no mobile artboard, so below 900px the
+  table is replaced by a simple card per client (CODE-BATCHES.md's own note:
+  extrapolate a simple row from the table's columns) — no sideways-scrolling
+  table on phones. From 900px up it's R13's table and drawer.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Clientes — Eni’ol</title>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/motion.css">
+<link rel="stylesheet" href="../assets/css/pro-motion-off.css">
+<script src="../assets/js/motion.js"></script>
+<style>
+  body { line-height: normal; }
+  .pro-page__main { padding: 18px 20px 100px; }
+  @media (min-width: 900px) { .pro-page__main { padding: 22px 24px; } }
+
+  .cls-head { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .cls-head h1 { font-size: 26px; margin: 0; }
+  .cls-head__count { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+  .cls-search { border: 1px solid var(--rule); background: var(--surface); border-radius: var(--radius-pill); padding: 12px 18px; font-size: 14px; width: 100%; }
+  .cls-search::placeholder { color: var(--ink-3); }
+  @media (min-width: 900px) {
+    .cls-head { flex-wrap: nowrap; }
+    .cls-head h1 { font-size: 30px; }
+    .cls-search { margin-left: auto; width: auto; min-width: 260px; }
+  }
+
+  /* Mobile cards */
+  .cls-mobile-row { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-card); text-decoration: none; color: inherit; margin-bottom: 10px; }
+  .cls-mobile-row__meta { flex: 1; min-width: 0; }
+  .cls-mobile-row__meta p { margin: 0; }
+  .cls-mobile-row__name { font-weight: 600; font-size: 15px; }
+  .cls-mobile-row__sub { font-size: 13px; color: var(--ink-2); margin-top: 2px !important; }
+  .cls-mobile-row__stat { text-align: right; font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); flex: none; }
+
+  /* Desktop table + drawer (R13) */
+  .cls-shell { display: flex; }
+  .cls-table-wrap { flex: 1; min-width: 0; }
+  /* R13: the selected row goes --sand, so its avatar flips to --ground to stay visible. */
+  .data-table__row.is-active .data-table__avatar { background: var(--ground); }
+  .cls-drawer {
+    display: none; width: 400px; flex: 0 0 auto; border-left: 1px solid var(--ink); background: var(--surface);
+    padding: 22px 20px; flex-direction: column; gap: 16px; margin: -22px -24px -22px 24px;
+  }
+  .cls-drawer.is-open { display: flex; }
+
+  /* These must stay AFTER .cls-shell above: same specificity, so the later
+     rule wins — an earlier version had them in the opposite order and the
+     table showed on phones regardless of the media query. */
+  @media (max-width: 899px) { .cls-shell { display: none; } }
+  @media (min-width: 900px) { .cls-mobile { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="pro-page">
+  <nav class="pro-sidebar" aria-label="Navigation Eni’ol">
+    <p class="pro-sidebar__logo">Eni’ol</p>
+    <a class="pro-sidebar__item" href="index.html">☀ Aujourd’hui</a>
+    <a class="pro-sidebar__item" href="demandes.html">✉ Demandes <span class="pro-sidebar__badge" data-badge="demandes" hidden></span></a>
+    <a class="pro-sidebar__item" href="agenda.html">▦ Agenda</a>
+    <a class="pro-sidebar__item is-active" href="clientes.html">♡ Clientes</a>
+    <a class="pro-sidebar__item" href="prestations.html">✂ Prestations</a>
+    <a class="pro-sidebar__item" href="disponibilites.html">◷ Disponibilités</a>
+    <a class="pro-sidebar__item" href="encaissements.html">€ Encaissements</a>
+    <a class="pro-sidebar__item" href="reglages.html">⚙ Réglages</a>
+  </nav>
+
+  <main class="pro-page__main">
+    <div class="cls-head">
+      <h1>Clientes</h1>
+      <span class="cls-head__count" id="cls-count"></span>
+      <input class="cls-search" id="cls-search" placeholder="Chercher un prénom, une adresse…">
+    </div>
+
+    <div class="cls-mobile" id="cls-mobile"></div>
+
+    <div class="cls-shell">
+      <div class="cls-table-wrap">
+        <div class="data-table">
+          <div class="data-table__head"><span style="flex:1.4 1 0; min-width:0;">CLIENTE</span><span style="flex:1.4 1 0; min-width:0;">ADRESSE PRINCIPALE</span><span style="flex:0 0 110px;">DERNIER RDV</span><span style="flex:0 0 72px; text-align:center;">RDV</span><span style="flex:0 0 86px; text-align:right;">TOTAL</span></div>
+          <div id="cls-table-body"></div>
+        </div>
+      </div>
+      <aside class="cls-drawer" id="cls-drawer"></aside>
+    </div>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="Navigation Eni’ol" style="position:fixed; left:0; right:0; bottom:0; z-index:10;">
+  <a class="bottom-nav__item" href="index.html"><span class="bottom-nav__icon">☀</span><span class="bottom-nav__label">Aujourd’hui</span></a>
+  <a class="bottom-nav__item" href="demandes.html"><span class="bottom-nav__icon">✉</span><span class="bottom-nav__badge" data-badge="demandes" hidden></span><span class="bottom-nav__label">Demandes</span></a>
+  <a class="bottom-nav__item" href="agenda.html"><span class="bottom-nav__icon">▦</span><span class="bottom-nav__label">Agenda</span></a>
+  <a class="bottom-nav__item is-active" href="clientes.html"><span class="bottom-nav__icon">♡</span><span class="bottom-nav__label">Clientes</span></a>
+  <a class="bottom-nav__item" href="reglages.html"><span class="bottom-nav__icon">⋯</span><span class="bottom-nav__label">Plus</span></a>
+</nav>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/dates.js"></script>
+<script src="../assets/js/travel.js"></script>
+<script src="../assets/js/availability.js"></script>
+<script src="../assets/js/status.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/strings.js"></script>
+<script src="../assets/js/pro/nav-badge.js"></script>
+<script src="../assets/js/pro/ajouter-rdv.js"></script>
+<script src="../assets/js/pro/clientes.js"></script>
+<script src="../assets/js/demo-bar.js"></script>
+</body>
+</html>

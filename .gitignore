@@ -1,0 +1,20 @@
+.DS_Store
+
+# Internal planning & research notes, and the pre-approval Claude Design
+# deliverable. These hold Eni'ol's contact details and unreleased
+# business/pricing decisions — kept local only, not on GitHub.
+#
+# This also matches CLAUDE.md: Claude Code reads that file straight off
+# disk at the start of every session in this folder, so it doesn't need
+# to be tracked in git to keep doing its job.
+#
+# Once the static mockup exists, everything under site/ is the actual
+# deliverable and IS meant to be published/shared — nothing above
+# excludes it, since these patterns are root-relative (a single leading
+# slash), not recursive.
+/*.md
+/research/
+/Livrable Eni'ol quatre fichiers/
+
+# Local Claude Code tooling (preview server config) — not part of the site.
+/.claude/

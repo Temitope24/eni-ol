@@ -1,0 +1,164 @@
+/*
+  Reset + spacing/radii/shadow/breakpoint tokens.
+  Source: "Plan de conception.dc.html" §3 (Espacement, rayons, ombres, points
+  de rupture), re-read fresh for this batch. Color/type tokens live in
+  tokens.css (B1) — load that before this file.
+*/
+
+:root {
+  /* ---- Spacing scale (base 4) — §3 ---- */
+  --space-4: 4px;   --space-8: 8px;   --space-12: 12px; --space-16: 16px;
+  --space-20: 20px; --space-24: 24px; --space-32: 32px; --space-40: 40px;
+  --space-56: 56px; --space-72: 72px; --space-96: 96px;
+
+  /* Semantic spacing named in §3's own prose */
+  --gutter-mobile: 20px; /* "Gouttière mobile 20 px" */
+  --section-rhythm-public: 56px; /* mobile — public pages */
+  --section-rhythm-pro: 16px;    /* mobile — pro pages, "même échelle, cran plus serré" */
+
+  /* ---- Radii — §3 ---- */
+  --radius-field: 10px; /* champ/puce */
+  --radius-card: 14px;
+  --radius-sheet: 20px; /* feuille — top corners only, see .sheet below */
+  --radius-pill: 999px;
+  --radius-photo: 12px;
+
+  /* ---- Shadows & elevation — §3 ----
+     "carte : filet 1px #DCCDBA, aucune ombre" — cards use var(--rule) border,
+     never a shadow. Only two actual shadow values exist in this system: */
+  --shadow-sheet: 0 -8px 28px -12px rgba(36, 24, 17, .28);
+  --shadow-button: 3px 3px 0 var(--ink); /* "emprunt Monte" — the one hard-edged effect */
+
+  /* ---- Content widths — §3 ---- */
+  --content-max-width: 1160px; /* public content */
+  --text-max-width: 680px;     /* prose column */
+}
+
+@media (min-width: 900px) {
+  :root {
+    --section-rhythm-public: 96px; /* desktop — public pages */
+    --section-rhythm-pro: 24px;    /* desktop — pro pages */
+  }
+}
+
+/*
+  Breakpoints — §3: 390 (base) · 600 · 900 · 1280.
+  CSS custom properties can't be used inside @media conditions, so these are
+  documented here for reference and used as literal values in @media rules
+  throughout the CSS: @media (min-width: 600px|900px|1280px).
+  "Mobile d'abord. À 900 px : sommaire d'étapes à gauche + récapitulatif
+  collant à droite (réserver), barre latérale (pro)."
+*/
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--ground);
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-ui-regular);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400; /* Gloock has no other weight */
+}
+
+ul, ol { margin: 0; padding: 0; }
+
+a {
+  color: var(--action);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+a:hover { color: var(--action-press); }
+
+/* The header wordmark is a link back to index.html on every page except
+   the homepage itself, but it's plain ink text in every artboard, never
+   the brown link color — override the generic `a`/`a:hover` rule above. */
+.logo, .logo:hover { color: inherit; text-decoration: none; }
+
+img, picture, video { max-width: 100%; display: block; }
+
+/* Any component that sets its own `display` would otherwise override the
+   browser's built-in [hidden] rule and stay visible (the demo panel did). */
+[hidden] { display: none !important; }
+
+/* Visually hidden but reachable by keyboard/screen readers — for controls
+   §7 (Accessibilité) requires but no artboard actually draws (e.g. the
+   before/after slider's keyboard fallback). Never use display:none for
+   these: that would remove them from the accessibility tree too. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+table { border-collapse: collapse; width: 100%; }
+
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Focus ring — never outline:none. Values from §7 (Accessibilité), applied
+   here since the reset layer is where a document-wide rule like this
+   belongs; the tokens themselves (--focus / --focus-on-deep) were already
+   defined in tokens.css (§1) but need a rule that actually uses them. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* Apply to any container sitting on a --deep background (sticky action bar,
+   inverted sections, pro sidebar) so the ring stays visible there too. */
+.on-deep :focus-visible {
+  outline-color: var(--focus-on-deep);
+}
+
+/* ---- Sheet (bottom sheet) base shape ----
+   §3: "feuille 20 (haut)" — rounded top corners only; flush with the
+   viewport bottom (the mockup's own frame rounds the bottom corners too,
+   but that's an artifact of the phone-frame canvas, not something to carry
+   into the real, full-viewport site). */
+.sheet {
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  box-shadow: var(--shadow-sheet);
+}
+
+/* ---- Photo frames — §3 "Cadres photo (§9.5)" ----
+   Fixed ratios reused everywhere; object-fit:cover + 1px rule + sand
+   fallback background so swapping in a real photo never changes layout. */
+.photo-frame {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-photo);
+  background: var(--sand);
+  overflow: hidden;
+}
+.photo-frame > img { width: 100%; height: 100%; object-fit: cover; }
+
+.ratio-4-5  { aspect-ratio: 4 / 5; }  /* portrait & avant/après */
+.ratio-1-1  { aspect-ratio: 1 / 1; }  /* grille portfolio & vignettes */
+.ratio-3-2  { aspect-ratio: 3 / 2; }  /* pleine largeur (texture de lace) */
+.ratio-16-9 { aspect-ratio: 16 / 9; } /* bandeau desktop */
